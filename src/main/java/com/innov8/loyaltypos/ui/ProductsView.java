@@ -160,9 +160,14 @@ public class ProductsView {
         modal.show();
     }
 
-    static double parseD(String s) { try { return Double.parseDouble(s.trim()); } catch (Exception e) { return 0; } }
+    /** Parse a user-typed number, stripping commas/currency so "₱1,500.00" or "1,500" works. */
+    public static double parseD(String s) {
+        if (s == null) return 0;
+        try { return Double.parseDouble(s.trim().replaceAll("[,₱$\\s]", "")); }
+        catch (Exception e) { return 0; }
+    }
 
-    static TextField labeledField(VBox parent, String label, String value) {
+    public static TextField labeledField(VBox parent, String label, String value) {
         Label l = new Label(label.toUpperCase()); l.getStyleClass().add("field-label");
         TextField tf = new TextField(value == null ? "" : value);
         tf.getStyleClass().add("field-input");

@@ -51,8 +51,11 @@ public class TransactionsView {
         // Filter row
         HBox filter = new HBox(12);
         filter.setAlignment(Pos.CENTER_LEFT);
-        VBox fromBox = new VBox(4); Label fl = new Label("FROM"); fl.getStyleClass().add("field-label"); fromBox.getChildren().addAll(fl, fromDp);
-        VBox toBox = new VBox(4); Label tl = new Label("TO"); tl.getStyleClass().add("field-label"); toBox.getChildren().addAll(tl, toDp);
+        // Show MM/dd/yy format hint and parse user input in that format
+        applyDateFormat(fromDp);
+        applyDateFormat(toDp);
+        VBox fromBox = new VBox(4); Label fl = new Label("FROM (MM/DD/YY)"); fl.getStyleClass().add("field-label"); fromBox.getChildren().addAll(fl, fromDp);
+        VBox toBox = new VBox(4); Label tl = new Label("TO (MM/DD/YY)"); tl.getStyleClass().add("field-label"); toBox.getChildren().addAll(tl, toDp);
         Button apply = new Button("Filter"); apply.getStyleClass().addAll("btn", "btn-primary"); apply.setOnAction(e -> load());
         Button clear = new Button("Clear"); clear.getStyleClass().addAll("btn", "btn-ghost"); clear.setOnAction(e -> { fromDp.setValue(null); toDp.setValue(null); load(); });
         countLabel.setStyle("-fx-text-fill: #52525b;");
@@ -151,6 +154,18 @@ public class TransactionsView {
         VBox.setVgrow(table, Priority.ALWAYS);
         root.getChildren().add(table);
         load();
+    }
+
+    private static void applyDateFormat(DatePicker dp) {
+        java.time.format.DateTimeFormatter f = java.time.format.DateTimeFormatter.ofPattern("MM/dd/yy");
+        dp.setPromptText("MM/DD/YY");
+        dp.setConverter(new javafx.util.StringConverter<>() {
+            @Override public String toString(LocalDate d) { return d == null ? "" : f.format(d); }
+            @Override public LocalDate fromString(String s) {
+                if (s == null || s.trim().isEmpty()) return null;
+                try { return LocalDate.parse(s.trim(), f); } catch (Exception e) { return null; }
+            }
+        });
     }
 
     private void addCol(String label, java.util.function.Function<Transaction, String> getter) {

@@ -332,6 +332,10 @@ public final class Database {
                 {"api_url", "\"https://loyalty-api.development.primelink.com.ph\""},
                 {"api_key", "\"\""},
                 {"totp_secret", "\"\""},
+                {"theme", "\"dark\""},
+                {"gemini_api_key", "\"\""},
+                {"gemini_model", "\"gemini-3.1-flash-lite\""},
+                {"ai_enabled", "false"},
         };
         try (PreparedStatement ps = conn.prepareStatement(
                 "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)")) {

@@ -127,10 +127,10 @@
 }
 .pin-key:hover { -fx-background-color: #18181b; -fx-text-fill: #ffffff; }
 .pin-dot {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #18181b;
+    -fx-fill: #ffffff;
+    -fx-stroke: #18181b;
 }
-.pin-dot.filled { -fx-background-color: #18181b; }
+.pin-dot.filled { -fx-fill: #18181b; }
 
 /* Tabs */
 .tab-button { -fx-text-fill: #71717a; }

@@ -8,6 +8,7 @@ import com.innov8.loyaltypos.model.TransactionItem;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 public final class PosService {
@@ -30,6 +31,26 @@ public final class PosService {
             String customDate
     ) {
         CheckoutResult res = new CheckoutResult();
+        // Pre-flight stock check: refuse the sale if any line would drive stock negative.
+        // Per professor revision: orders must stop when quantity reaches 0.
+        for (TransactionItem item : items) {
+            if (item.productId == null) continue;
+            try (PreparedStatement ps = Database.get().prepareStatement(
+                    "SELECT name, stock_qty FROM products WHERE id=?")) {
+                ps.setInt(1, item.productId);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    double available = rs.getDouble("stock_qty");
+                    if (item.quantity > available + 1e-9) {
+                        String name = rs.getString("name");
+                        throw new RuntimeException("Insufficient stock for \"" + name + "\": "
+                                + "requested " + item.quantity + " " + item.unit
+                                + ", only " + available + " available.");
+                    }
+                }
+            } catch (RuntimeException re) { throw re; }
+              catch (Exception ex) { throw new RuntimeException(ex); }
+        }
         try {
             Database.get().setAutoCommit(false);
 
@@ -41,9 +62,26 @@ public final class PosService {
             else if (paid < total - 0.01) status = "partial";
             else status = "paid";
 
-            String date = (customDate == null || customDate.isEmpty())
-                    ? OffsetDateTime.now().toString()
-                    : customDate;
+            // Always tag with the system's local zone offset so SQLite's
+            // date(date,'localtime') produces the same wall-clock the user typed
+            // (was: a naive ISO string would be treated as UTC and shifted).
+            ZoneId zone = ZoneId.systemDefault();
+            String date;
+            if (customDate == null || customDate.isEmpty()) {
+                date = OffsetDateTime.now(zone).toString();
+            } else if (customDate.contains("+") || customDate.endsWith("Z")
+                    || customDate.matches(".*[+-]\\d{2}:\\d{2}$")) {
+                date = customDate;
+            } else {
+                // "2026-05-20T14:30:00" → "2026-05-20T14:30:00+08:00"
+                try {
+                    var ldt = java.time.LocalDateTime.parse(customDate.length() == 16
+                            ? customDate + ":00" : customDate);
+                    date = ldt.atZone(zone).toOffsetDateTime().toString();
+                } catch (Exception ex) {
+                    date = OffsetDateTime.now(zone).toString();
+                }
+            }
 
             String invoice = nextInvoiceNo(date);
 

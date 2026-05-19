@@ -322,17 +322,13 @@
     -fx-text-fill: #444;
     -fx-cursor: default;
 }
+/* Pin dots are JavaFX Shape (Circle) — use -fx-fill / -fx-stroke, not -fx-background-color */
 .pin-dot {
-    -fx-min-width: 11; -fx-min-height: 11;
-    -fx-pref-width: 11; -fx-pref-height: 11;
-    -fx-max-width: 11; -fx-max-height: 11;
-    -fx-background-color: #222;
-    -fx-border-color: #f5f2ea;
-    -fx-border-width: 2;
-    -fx-background-radius: 50%;
-    -fx-border-radius: 50%;
+    -fx-fill: #222;
+    -fx-stroke: #f5f2ea;
+    -fx-stroke-width: 2;
 }
-.pin-dot.filled { -fx-background-color: #f5f2ea; }
+.pin-dot.filled { -fx-fill: #f5f2ea; }
 
 /* ─── Misc ───────────────────────────────────────────────────────────────── */
 .surface { -fx-background-color: #18181b; -fx-background-radius: 8; -fx-border-color: rgba(255,255,255,0.08); -fx-border-radius: 8; }

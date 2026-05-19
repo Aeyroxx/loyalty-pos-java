@@ -127,12 +127,28 @@ public class CustomersView {
         save.setOnAction(e -> {
             try {
                 form.name = nameTf.getText().trim();
-                form.tin = tinTf.getText();
-                form.phone = phoneTf.getText();
+                form.tin = tinTf.getText() == null ? "" : tinTf.getText().trim();
+                form.phone = phoneTf.getText() == null ? "" : phoneTf.getText().trim();
                 form.address = addressTf.getText();
                 form.notes = notesTf.getText();
                 form.creditLimit = ProductsView.parseD(creditTf.getText());
-                if (form.name.isEmpty()) return;
+                if (form.name.isEmpty()) {
+                    showError(new Exception("Name is required."));
+                    return;
+                }
+                // 12-digit numeric validation: ignore spaces / dashes when counting
+                String phoneDigits = form.phone.replaceAll("\\D", "");
+                String tinDigits = form.tin.replaceAll("\\D", "");
+                if (!form.phone.isEmpty() && phoneDigits.length() != 12) {
+                    showError(new Exception("Phone must be exactly 12 digits (e.g. 639XXXXXXXXX). You entered " + phoneDigits.length() + "."));
+                    phoneTf.requestFocus();
+                    return;
+                }
+                if (!form.tin.isEmpty() && tinDigits.length() != 12) {
+                    showError(new Exception("TIN must be exactly 12 digits. You entered " + tinDigits.length() + "."));
+                    tinTf.requestFocus();
+                    return;
+                }
                 if (editing == null) CustomerService.create(form);
                 else CustomerService.update(form);
                 modal.close();

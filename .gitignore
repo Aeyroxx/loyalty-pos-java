@@ -26,6 +26,9 @@ hs_err_pid*
 # Conversation exports
 CLAUDE_CODE_*.txt
 
+# Editor stray temp files
+*.tmp.*
+
 # Local SQLite databases (the app creates these under %APPDATA%/loyalty-pos/,
 # but exclude any that get committed accidentally next to the project)
 *.db

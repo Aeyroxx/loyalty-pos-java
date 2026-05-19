@@ -114,8 +114,10 @@ public class PosView {
         topRow.setPadding(new Insets(10, 20, 10, 20));
         topRow.setStyle("-fx-background-color: #111; -fx-border-color: transparent transparent rgba(255,255,255,0.08) transparent;");
 
-        Label customerLbl = new Label("CUSTOMER"); customerLbl.getStyleClass().add("section-title");
-        customerCombo.setPrefWidth(220);
+        // Stack each field as label-above-control so the plate textbox sits at the
+        // same baseline as customer/date (was: plate VBox rode high above its label).
+        VBox customerBox = labelStack("CUSTOMER", customerCombo);
+        customerCombo.setPrefWidth(240);
         customerCombo.setPromptText("Walk-in Customer");
         customerCombo.setEditable(false);
         customerCombo.setConverter(new javafx.util.StringConverter<>() {
@@ -124,24 +126,25 @@ public class PosView {
         });
         customerCombo.valueProperty().addListener((obs, o, v) -> selectedCustomer = v);
 
-        Label dateLbl = new Label("DATE"); dateLbl.getStyleClass().add("section-title");
         dateTf.setText(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
-        dateTf.setPrefWidth(160);
+        dateTf.setPrefWidth(170);
         dateTf.getStyleClass().add("text-field");
-        dateTf.setStyle("-fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 12;");
+        dateTf.setStyle("-fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 13;");
+        VBox dateBox = labelStack("DATE", dateTf);
 
-        Label plateLbl = new Label("PLATE NO."); plateLbl.getStyleClass().add("section-title");
         plateTf.setPromptText("e.g. ABC 1234");
-        plateTf.setPrefWidth(150);
+        plateTf.setPrefWidth(180);
         plateTf.getStyleClass().add("text-field");
         plateTf.setStyle("-fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 13;");
         plateTf.focusedProperty().addListener((obs, o, focused) -> { if (!focused) handlePlateBlur(); });
 
         truckInfoLabel.setStyle("-fx-text-fill: #d4690a; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 10; -fx-font-weight: 700;");
 
-        VBox plateBox = new VBox(2, plateTf, truckInfoLabel);
+        VBox plateControl = new VBox(2, plateTf, truckInfoLabel);
+        VBox plateBox = labelStack("PLATE NO.", plateControl);
 
-        topRow.getChildren().addAll(customerLbl, customerCombo, sep(), dateLbl, dateTf, sep(), plateLbl, plateBox);
+        topRow.setAlignment(Pos.BOTTOM_LEFT);
+        topRow.getChildren().addAll(customerBox, sep(), dateBox, sep(), plateBox);
         center.getChildren().add(topRow);
 
         // Cart table
@@ -154,26 +157,31 @@ public class PosView {
         nameCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().productName));
         TableColumn<TransactionItem, String> unitCol = new TableColumn<>("UNIT");
         unitCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().unit));
-        unitCol.setMaxWidth(80);
+        unitCol.setPrefWidth(100);
+        unitCol.setMinWidth(80);
         TableColumn<TransactionItem, TransactionItem> qtyCol = new TableColumn<>("QTY");
-        qtyCol.setMaxWidth(100);
+        qtyCol.setPrefWidth(130);
+        qtyCol.setMinWidth(110);
         qtyCol.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue()));
         qtyCol.setCellFactory(col -> editCell(true));
 
         TableColumn<TransactionItem, String> upCol = new TableColumn<>("UNIT PRICE");
         upCol.setCellValueFactory(c -> new SimpleStringProperty(sym + Money.fmt(c.getValue().unitPrice)));
-        upCol.setMaxWidth(120);
+        upCol.setPrefWidth(150);
+        upCol.setMinWidth(120);
         upCol.setStyle("-fx-alignment: CENTER-RIGHT;");
 
         TableColumn<TransactionItem, TransactionItem> cpCol = new TableColumn<>("CUSTOM PRICE");
-        cpCol.setMaxWidth(140);
+        cpCol.setPrefWidth(170);
+        cpCol.setMinWidth(140);
         cpCol.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue()));
         cpCol.setCellFactory(col -> editCell(false));
 
         TableColumn<TransactionItem, String> amtCol = new TableColumn<>("AMOUNT");
         amtCol.setCellValueFactory(c -> new SimpleStringProperty(sym + Money.fmt(c.getValue().amount)));
         amtCol.setStyle("-fx-alignment: CENTER-RIGHT;");
-        amtCol.setMaxWidth(140);
+        amtCol.setPrefWidth(170);
+        amtCol.setMinWidth(140);
 
         TableColumn<TransactionItem, TransactionItem> rmCol = new TableColumn<>("");
         rmCol.setMaxWidth(50);
@@ -224,6 +232,14 @@ public class PosView {
         loadData();
     }
 
+    private static VBox labelStack(String label, javafx.scene.Node control) {
+        Label l = new Label(label);
+        l.getStyleClass().add("section-title");
+        VBox v = new VBox(4, l, control);
+        v.setAlignment(Pos.TOP_LEFT);
+        return v;
+    }
+
     private static Region sep() {
         Region r = new Region();
         r.setPrefSize(1, 28);
@@ -252,7 +268,8 @@ public class PosView {
                 TextField tf = new TextField(isQty ? Money.fmt(it.quantity) : (it.customPrice == null ? "" : Money.fmt(it.customPrice)));
                 tf.setPromptText(isQty ? "" : Money.fmt(it.unitPrice));
                 tf.setStyle("-fx-background-color: rgba(255,255,255,0.05); -fx-border-color: rgba(255,255,255,0.10); -fx-text-fill: " + (it.customPrice != null && !isQty ? "#d4690a" : "#f4f4f5") + "; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 13; -fx-padding: 5 8; -fx-background-radius: 4; -fx-border-radius: 4;");
-                tf.setMaxWidth(isQty ? 72 : 100);
+                tf.setMaxWidth(isQty ? 100 : 140);
+                tf.setPrefWidth(isQty ? 100 : 140);
                 tf.textProperty().addListener((o, a, b) -> {
                     if (isQty) it.quantity = ProductsView.parseD(b);
                     else it.customPrice = b == null || b.isEmpty() ? null : ProductsView.parseD(b);

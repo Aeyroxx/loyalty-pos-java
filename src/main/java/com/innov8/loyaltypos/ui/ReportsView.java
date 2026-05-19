@@ -260,7 +260,9 @@ public class ReportsView {
                 colS("UNIT", r -> r.unit == null ? "—" : r.unit),
                 colS("QTY SOLD", r -> Money.fmt(r.quantitySold)),
                 colS("REVENUE", r -> sym + Money.fmt(r.revenue)),
-                colS("# SALES", r -> String.valueOf(r.transactionCount))
+                colS("# SALES", r -> String.valueOf(r.transactionCount)),
+                colS("FIRST SALE", r -> r.firstSale == null ? "—" : r.firstSale),
+                colS("LAST SALE", r -> r.lastSale == null ? "—" : r.lastSale)
         );
         content.getChildren().add(table);
 
@@ -287,10 +289,41 @@ public class ReportsView {
                 colS("CUSTOMER", (PoStatRow r) -> r.customerName),
                 colS("PO REF", r -> r.referenceNo == null ? "—" : r.referenceNo),
                 colS("CREDIT LIMIT", r -> sym + Money.fmt(r.creditLimit)),
-                colS("USED", r -> sym + Money.fmt(r.balanceUsed)),
-                colS("AVAILABLE", r -> sym + Money.fmt(r.available)),
-                colS("STATUS", r -> r.status),
-                colS("EXPIRY", r -> r.expiryDate == null ? "—" : r.expiryDate)
+                colS("USED", r -> sym + Money.fmt(r.balanceUsed))
+        );
+        // Colored AVAILABLE column
+        TableColumn<PoStatRow, PoStatRow> availCol = new TableColumn<>("AVAILABLE");
+        availCol.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue()));
+        availCol.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+            @Override protected void updateItem(PoStatRow r, boolean empty) {
+                super.updateItem(r, empty);
+                if (empty || r == null) { setText(null); setStyle(""); return; }
+                setText(sym + Money.fmt(r.available));
+                setStyle("-fx-text-fill: " + (r.available > 0 ? "#22c55e" : "#ef4444") + "; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-weight: 600;");
+            }
+        });
+        t.getColumns().add(availCol);
+        // Colored STATUS column
+        TableColumn<PoStatRow, PoStatRow> statusCol = new TableColumn<>("STATUS");
+        statusCol.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue()));
+        statusCol.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+            @Override protected void updateItem(PoStatRow r, boolean empty) {
+                super.updateItem(r, empty);
+                if (empty || r == null) { setGraphic(null); return; }
+                Label b = new Label(r.status == null ? "—" : r.status.toUpperCase());
+                String css = switch (r.status == null ? "" : r.status) {
+                    case "open" -> "badge-success";
+                    case "expired" -> "badge-danger";
+                    case "closed" -> "badge-muted";
+                    default -> "badge-warning";
+                };
+                b.getStyleClass().addAll("badge", css);
+                setGraphic(b);
+            }
+        });
+        t.getColumns().add(statusCol);
+        t.getColumns().add(
+                colS("EXPIRY", (PoStatRow r) -> r.expiryDate == null ? "—" : r.expiryDate)
         );
         content.getChildren().add(t);
     }

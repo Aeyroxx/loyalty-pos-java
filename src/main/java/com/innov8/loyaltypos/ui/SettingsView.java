@@ -65,6 +65,9 @@ public class SettingsView {
                     {"vat_enabled", "VAT Enabled", "boolean"},
                     {"vat_rate", "VAT Rate (%)", "number"}
             }),
+            new Section("Appearance", new String[][]{
+                    {"theme", "Theme (dark / light)", "text"}
+            }),
             new Section("Printers", new String[][]{
                     {"thermal_printer", "Thermal Printer Name", "text"},
                     {"normal_printer", "Normal (A4) Printer Name", "text"},
@@ -74,6 +77,11 @@ public class SettingsView {
                     {"api_url", "API URL (leave blank for offline-only)", "text"},
                     {"api_key", "API Key (X-API-Key)", "text"}
             }),
+            new Section("Google Gemini AI", new String[][]{
+                    {"ai_enabled", "Enable AI features", "boolean"},
+                    {"gemini_api_key", "Gemini API Key (https://aistudio.google.com/app/apikey)", "text"},
+                    {"gemini_model", "Model (default: gemini-3.1-flash-lite)", "text"}
+            }),
             new Section("PO Defaults", new String[][]{
                     {"po_default_credit_limit", "Default Credit Limit", "number"},
                     {"po_default_expiry_days", "Default Expiry (days)", "number"}
@@ -81,8 +89,9 @@ public class SettingsView {
     };
 
     public SettingsView() {
-        root.setPadding(new Insets(32, 40, 32, 40));
-        root.setMaxWidth(800);
+        root.setPadding(new Insets(36, 56, 48, 56));
+        root.setSpacing(28);
+        root.setMaxWidth(1100);
 
         Label title = new Label("SETTINGS"); title.getStyleClass().add("page-title");
         root.getChildren().add(title);
@@ -135,7 +144,12 @@ public class SettingsView {
         root.getChildren().add(title);
 
         GridPane grid = new GridPane();
-        grid.setHgap(32); grid.setVgap(20);
+        grid.setHgap(40); grid.setVgap(20);
+        javafx.scene.layout.ColumnConstraints c1 = new javafx.scene.layout.ColumnConstraints();
+        javafx.scene.layout.ColumnConstraints c2 = new javafx.scene.layout.ColumnConstraints();
+        c1.setHgrow(Priority.ALWAYS); c1.setPercentWidth(50);
+        c2.setHgrow(Priority.ALWAYS); c2.setPercentWidth(50);
+        grid.getColumnConstraints().addAll(c1, c2);
         for (int i = 0; i < section.fields.length; i++) {
             String[] f = section.fields[i];
             String key = f[0], label = f[1], type = f[2];
@@ -152,7 +166,9 @@ public class SettingsView {
                 ctl = tf;
             }
             fields.put(key, ctl);
+            if (ctl instanceof Region rc) rc.setMaxWidth(Double.MAX_VALUE);
             VBox box = new VBox(6, lbl, ctl);
+            box.setMaxWidth(Double.MAX_VALUE);
             grid.add(box, i % 2, i / 2);
         }
         root.getChildren().add(grid);
@@ -174,6 +190,13 @@ public class SettingsView {
                 SettingsService.set(key, value);
             }
             App.ctx.settings = SettingsService.getAll();
+            // If theme key changed, re-apply CSS on the live scene
+            String theme = String.valueOf(App.ctx.settings.getOrDefault("theme", "dark"));
+            if (!theme.equals(App.ctx.theme)) {
+                App.ctx.theme = "light".equalsIgnoreCase(theme) ? "light" : "dark";
+                java.util.prefs.Preferences.userNodeForPackage(com.innov8.loyaltypos.AppContext.class).put("pos_theme", App.ctx.theme);
+                if (btn.getScene() != null) App.applyTheme(btn.getScene());
+            }
             btn.setText("✓ Saved");
             new Thread(() -> {
                 try { Thread.sleep(2000); } catch (InterruptedException ignore) {}

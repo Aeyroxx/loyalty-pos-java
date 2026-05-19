@@ -69,7 +69,19 @@ public class PoAccountsView {
         addCol("EXPIRY", a -> a.expiryDate == null ? "—" : a.expiryDate);
         addCol("CREDIT LIMIT", a -> sym + Money.fmt(a.creditLimit));
         addCol("USED", a -> sym + Money.fmt(a.balanceUsed));
-        addCol("AVAILABLE", a -> sym + Money.fmt(a.available()));
+        // Colored AVAILABLE column — green when positive, red when 0 or overdrawn
+        TableColumn<PoAccount, PoAccount> availCol = new TableColumn<>("AVAILABLE");
+        availCol.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue()));
+        availCol.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+            @Override protected void updateItem(PoAccount a, boolean empty) {
+                super.updateItem(a, empty);
+                if (empty || a == null) { setText(null); setStyle(""); return; }
+                double v = a.available();
+                setText(sym + Money.fmt(v));
+                setStyle("-fx-text-fill: " + (v > 0 ? "#22c55e" : "#ef4444") + "; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-weight: 600;");
+            }
+        });
+        table.getColumns().add(availCol);
 
         TableColumn<PoAccount, PoAccount> statusCol = new TableColumn<>("STATUS");
         statusCol.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue()));
@@ -77,8 +89,14 @@ public class PoAccountsView {
             @Override protected void updateItem(PoAccount a, boolean empty) {
                 super.updateItem(a, empty);
                 if (empty || a == null) { setGraphic(null); return; }
-                Label badge = new Label(a.status.toUpperCase());
-                badge.getStyleClass().addAll("badge", "open".equals(a.status) ? "badge-success" : "badge-muted");
+                Label badge = new Label(a.status == null ? "—" : a.status.toUpperCase());
+                String css = switch (a.status == null ? "" : a.status) {
+                    case "open" -> "badge-success";
+                    case "expired" -> "badge-danger";
+                    case "closed" -> "badge-muted";
+                    default -> "badge-warning";
+                };
+                badge.getStyleClass().addAll("badge", css);
                 setGraphic(badge);
             }
         });
@@ -186,6 +204,18 @@ public class PoAccountsView {
         info.add(infoLabel("Expiry: " + (selected.expiryDate == null ? "None" : selected.expiryDate)), 1, 1);
         content.getChildren().add(info);
 
+        // Edit credit limit / details (admin only)
+        if (isAdmin) {
+            HBox actionRow = new HBox(10);
+            actionRow.setAlignment(Pos.CENTER_LEFT);
+            Button editBtn = new Button("Edit Details");
+            editBtn.getStyleClass().addAll("btn", "btn-secondary");
+            editBtn.setStyle("-fx-padding: 6 16; -fx-font-size: 12;");
+            editBtn.setOnAction(e -> openEditDetails(selected));
+            actionRow.getChildren().add(editBtn);
+            content.getChildren().add(actionRow);
+        }
+
         // Payment history header
         HBox phHeader = new HBox();
         phHeader.setAlignment(Pos.CENTER_LEFT);
@@ -235,6 +265,57 @@ public class PoAccountsView {
         Label l = new Label(text);
         l.setStyle("-fx-text-fill: #a1a1aa; -fx-font-size: 13;");
         return l;
+    }
+
+    private void openEditDetails(PoAccount selected) {
+        VBox content = new VBox(16);
+        Label err = new Label(); err.getStyleClass().add("error-banner");
+        err.setVisible(false); err.setManaged(false);
+        content.getChildren().add(err);
+
+        TextField refTf = ProductsView.labeledField(content, "Reference No.", selected.referenceNo == null ? "" : selected.referenceNo);
+        TextField creditTf = ProductsView.labeledField(content, "Credit Limit", String.valueOf(selected.creditLimit));
+        Label dl = new Label("EXPIRY DATE (OPTIONAL)"); dl.getStyleClass().add("field-label");
+        DatePicker dp = new DatePicker();
+        if (selected.expiryDate != null && !selected.expiryDate.isEmpty()) {
+            try { dp.setValue(LocalDate.parse(selected.expiryDate.substring(0, Math.min(10, selected.expiryDate.length())))); } catch (Exception ignore) {}
+        }
+        content.getChildren().add(new VBox(6, dl, dp));
+
+        Label sl = new Label("STATUS"); sl.getStyleClass().add("field-label");
+        ComboBox<String> statusCb = new ComboBox<>(FXCollections.observableArrayList("open", "closed", "expired"));
+        statusCb.setValue(selected.status);
+        statusCb.setMaxWidth(Double.MAX_VALUE);
+        content.getChildren().add(new VBox(6, sl, statusCb));
+
+        HBox btns = new HBox(10);
+        btns.setAlignment(Pos.CENTER_RIGHT);
+        Region s = new Region(); HBox.setHgrow(s, Priority.ALWAYS);
+        Button cancel = new Button("Cancel"); cancel.getStyleClass().addAll("btn", "btn-ghost");
+        Button save = new Button("Save Changes"); save.getStyleClass().addAll("btn", "btn-primary");
+        btns.getChildren().addAll(s, cancel, save);
+        content.getChildren().add(btns);
+
+        Modal modal = new Modal(root.getScene().getWindow(), "Edit PO Account", content, true);
+        cancel.setOnAction(e -> modal.close());
+        save.setOnAction(e -> {
+            try {
+                double limit = ProductsView.parseD(creditTf.getText());
+                if (limit < selected.balanceUsed) {
+                    err.setText("Credit limit can't be less than balance used (" + sym + Money.fmt(selected.balanceUsed) + ").");
+                    err.setVisible(true); err.setManaged(true);
+                    return;
+                }
+                selected.referenceNo = refTf.getText();
+                selected.creditLimit = limit;
+                selected.expiryDate = dp.getValue() == null ? null : dp.getValue().toString();
+                selected.status = statusCb.getValue();
+                PoService.update(selected);
+                modal.close();
+                load();
+            } catch (Exception ex) { showError(ex); }
+        });
+        modal.show();
     }
 
     private void openPayment(PoAccount selected) {

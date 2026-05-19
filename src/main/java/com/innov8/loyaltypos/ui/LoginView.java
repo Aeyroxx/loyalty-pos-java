@@ -76,7 +76,8 @@ public class LoginView {
 
     public LoginView() {
         root.getStyleClass().add("login-root");
-        root.setPrefSize(1280, 800);
+        // Allow the view to shrink with the window — no fixed pref size.
+        root.setMinSize(0, 0);
         root.setStyle("-fx-background-color: #09090b;");
 
         // Layer 1: ambient amber glow top-right + soft white glow bottom-left
@@ -85,24 +86,32 @@ public class LoginView {
         // Layer 2: subtle grid texture (40px squares, 2.5% opacity)
         root.getChildren().add(buildGridTexture());
 
-        // Layer 3: content grid (branding + pin card)
-        GridPane grid = new GridPane();
-        grid.setHgap(80);
-        grid.setVgap(0);
-        grid.setAlignment(Pos.CENTER);
-        grid.setPadding(new Insets(40, 60, 40, 60));
-        grid.setMaxWidth(1100);
+        // Layer 3: scrollable, responsive content. When the window shrinks below the
+        // branding+pin-card width, content scrolls/stacks instead of being clipped.
+        javafx.scene.control.ScrollPane scroller = new javafx.scene.control.ScrollPane();
+        scroller.setFitToWidth(true);
+        scroller.setFitToHeight(true);
+        scroller.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+        scroller.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        scroller.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+        javafx.scene.layout.FlowPane content = new javafx.scene.layout.FlowPane();
+        content.setAlignment(Pos.CENTER);
+        content.setHgap(60);
+        content.setVgap(40);
+        content.setPadding(new Insets(40, 40, 40, 40));
+        content.setRowValignment(javafx.geometry.VPos.CENTER);
 
         VBox left = buildBranding();
         StackPane right = buildPinCardWithGlow();
+        left.setPrefWidth(500);
+        left.setMaxWidth(560);
 
-        GridPane.setHgrow(left, Priority.ALWAYS);
-        GridPane.setHgrow(right, Priority.ALWAYS);
-        grid.add(left, 0, 0);
-        grid.add(right, 1, 0);
+        content.getChildren().addAll(left, right);
+        scroller.setContent(content);
 
-        root.getChildren().add(grid);
-        StackPane.setAlignment(grid, Pos.CENTER);
+        root.getChildren().add(scroller);
+        StackPane.setAlignment(scroller, Pos.CENTER);
 
         // staggered fade-slide-in (matches React keyframes)
         animateFadeIn(left, Duration.millis(100));

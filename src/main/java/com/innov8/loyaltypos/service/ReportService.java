@@ -86,7 +86,9 @@ public final class ReportService {
                   ti.unit                                  AS unit,
                   SUM(ti.quantity)                         AS qty,
                   SUM(ti.amount)                           AS revenue,
-                  COUNT(DISTINCT ti.transaction_id)        AS tx_count
+                  COUNT(DISTINCT ti.transaction_id)        AS tx_count,
+                  MIN(date(t.date,'localtime'))            AS first_sale,
+                  MAX(date(t.date,'localtime'))            AS last_sale
                 FROM transaction_items ti
                 JOIN transactions t ON t.id = ti.transaction_id
                 LEFT JOIN products p ON p.id = ti.product_id
@@ -106,6 +108,8 @@ public final class ReportService {
                 r.quantitySold = rs.getDouble("qty");
                 r.revenue = rs.getDouble("revenue");
                 r.transactionCount = rs.getInt("tx_count");
+                try { r.firstSale = rs.getString("first_sale"); } catch (Exception ignore) {}
+                try { r.lastSale = rs.getString("last_sale"); } catch (Exception ignore) {}
                 out.add(r);
             }
         } catch (Exception e) { throw new RuntimeException(e); }

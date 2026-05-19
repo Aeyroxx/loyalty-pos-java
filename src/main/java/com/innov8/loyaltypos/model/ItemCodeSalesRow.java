@@ -13,4 +13,8 @@ public class ItemCodeSalesRow {
     public double quantitySold;
     public double revenue;
     public int transactionCount;
+    /** First sale date within the range, formatted yyyy-MM-dd. */
+    public String firstSale;
+    /** Last sale date within the range, formatted yyyy-MM-dd. */
+    public String lastSale;
 }
