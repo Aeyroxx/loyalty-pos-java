@@ -1,0 +1,34 @@
+# Maven
+target/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+nbproject/private/
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Logs / runtime
+*.log
+hs_err_pid*
+
+# Local Claude / OMC working state
+.omc/
+.claude/
+
+# Conversation exports
+CLAUDE_CODE_*.txt
+
+# Local SQLite databases (the app creates these under %APPDATA%/loyalty-pos/,
+# but exclude any that get committed accidentally next to the project)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

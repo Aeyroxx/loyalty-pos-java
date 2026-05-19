@@ -1,0 +1,140 @@
+/* ─── Light theme overrides for Loyalty POS ─────────────────────────────────
+ * Loaded ON TOP of app.css when theme=light. Most inline-styled colors stay
+ * dark (JavaFX has no !important), but the dominant containers, panels and
+ * inputs flip to a light palette. Accent stays #d4690a.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+.root {
+    -fx-base: #f4f4f5;
+    -fx-background: #ffffff;
+    -fx-control-inner-background: #ffffff;
+    -fx-control-inner-background-alt: #f5f5f5;
+    -fx-text-base-color: #18181b;
+    -ink: #18181b;
+    -paper: #ffffff;
+    -surface: #f5f5f5;
+    -border: rgba(0,0,0,0.10);
+    -border-strong: rgba(0,0,0,0.20);
+    -muted: #52525b;
+}
+
+/* Page surfaces */
+.bg-paper, .theme-light .bg-paper {
+    -fx-background-color: #ffffff;
+}
+.bg-surface, .theme-light .bg-surface,
+.surface, .theme-light .surface {
+    -fx-background-color: #f5f5f5;
+}
+.bg-sidebar, .theme-light .bg-sidebar,
+.sidebar {
+    -fx-background-color: #18181b;  /* sidebar stays dark like most light-mode dashboards */
+}
+
+/* Modal */
+.modal-overlay { -fx-background-color: rgba(0,0,0,0.45); }
+.modal-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: rgba(0,0,0,0.12);
+}
+.modal-header {
+    -fx-background-color: rgba(212,105,10,0.12);
+}
+.modal-title { -fx-text-fill: #18181b; }
+
+/* Bordered cards & dividers */
+.bordered-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: rgba(0,0,0,0.10);
+}
+.divider { -fx-background-color: rgba(0,0,0,0.10); }
+.toolbar-row {
+    -fx-background-color: #f5f5f5;
+    -fx-border-color: transparent transparent rgba(0,0,0,0.10) transparent;
+}
+
+/* Inputs */
+.text-field, .text-area, .password-field, .combo-box, .date-picker {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #18181b;
+    -fx-prompt-text-fill: #71717a;
+    -fx-border-color: rgba(0,0,0,0.20);
+}
+.text-field:focused, .text-area:focused, .password-field:focused, .combo-box:focused, .date-picker:focused {
+    -fx-border-color: rgba(0,0,0,0.45);
+}
+.field-input {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent rgba(0,0,0,0.25) transparent;
+    -fx-text-fill: #18181b;
+}
+.combo-box .list-cell {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #18181b;
+}
+.combo-box-popup .list-view { -fx-background-color: #ffffff; -fx-border-color: rgba(0,0,0,0.15); }
+.combo-box-popup .list-view .list-cell:hover,
+.combo-box-popup .list-view .list-cell:filled:selected {
+    -fx-background-color: rgba(212,105,10,0.15);
+    -fx-text-fill: #18181b;
+}
+
+/* Tables */
+.data-table {
+    -fx-background-color: transparent;
+    -fx-border-color: rgba(0,0,0,0.08);
+}
+.data-table .column-header,
+.data-table .filler {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: transparent transparent rgba(0,0,0,0.08) transparent;
+}
+.data-table .column-header .label { -fx-text-fill: #52525b; }
+.data-table .table-row-cell {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent rgba(0,0,0,0.06) transparent;
+}
+.data-table .table-row-cell:hover { -fx-background-color: #f8f8f8; }
+.data-table .table-row-cell:filled:selected { -fx-background-color: rgba(212,105,10,0.10); }
+.data-table .table-cell { -fx-text-fill: #18181b; }
+.data-table .table-row-cell:empty { -fx-background-color: transparent; }
+
+/* Text helpers */
+.text-ink, .heading, .page-title { -fx-text-fill: #18181b; }
+.text-muted { -fx-text-fill: #52525b; }
+.text-faint { -fx-text-fill: #71717a; }
+.field-label, .section-title { -fx-text-fill: #52525b; }
+
+/* Buttons */
+.btn-secondary { -fx-text-fill: #18181b; -fx-border-color: rgba(0,0,0,0.20); }
+.btn-secondary:hover { -fx-background-color: rgba(0,0,0,0.06); }
+.btn-ghost { -fx-text-fill: #52525b; -fx-border-color: rgba(0,0,0,0.15); }
+.btn-ghost:hover { -fx-text-fill: #18181b; -fx-border-color: rgba(0,0,0,0.40); }
+
+/* Login screen — invert background, keep card glassy */
+.login-root { -fx-background-color: #f5f5f5; }
+.login-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: rgba(0,0,0,0.10);
+}
+.login-headline { -fx-text-fill: #18181b; }
+
+/* Pin pad keys */
+.pin-key {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #18181b;
+    -fx-border-color: #d4d4d8;
+}
+.pin-key:hover { -fx-background-color: #18181b; -fx-text-fill: #ffffff; }
+.pin-dot {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #18181b;
+}
+.pin-dot.filled { -fx-background-color: #18181b; }
+
+/* Tabs */
+.tab-button { -fx-text-fill: #71717a; }
+.tab-button:hover { -fx-text-fill: #18181b; }
+
+/* Summary cards (Reports) — keep variant tints */
+.summary-card { -fx-background-color: #f5f5f5; -fx-border-color: rgba(0,0,0,0.08); }
