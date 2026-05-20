@@ -186,7 +186,7 @@ public class PaymentDialog {
 
             TextField tf = new TextField();
             tf.setPromptText("0.00");
-            tf.setStyle("-fx-background-color: transparent; -fx-border-color: transparent transparent rgba(255,255,255,0.2) transparent; -fx-text-fill: -ink; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 22; -fx-font-weight: 600; -fx-alignment: CENTER-RIGHT; -fx-padding: 6 0;");
+            tf.setStyle("-fx-background-color: transparent; -fx-border-color: transparent transparent -border-strong transparent; -fx-text-fill: -ink; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 22; -fx-font-weight: 600; -fx-alignment: CENTER-RIGHT; -fx-padding: 6 0;");
             // Pre-fill with remaining
             double currentPaid = 0;
             for (String mm : METHODS) {

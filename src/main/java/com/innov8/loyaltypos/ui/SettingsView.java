@@ -316,7 +316,7 @@ public class SettingsView {
         root.getChildren().addAll(t, desc);
 
         totpQrView.setFitWidth(200); totpQrView.setFitHeight(200);
-        totpQrView.setStyle("-fx-effect: dropshadow(gaussian, rgba(255,255,255,0.5), 4, 1, 0, 0);");
+        totpQrView.setStyle("-fx-effect: dropshadow(gaussian, -overlay-card, 4, 1, 0, 0);");
         totpQrView.setVisible(false); totpQrView.setManaged(false);
         root.getChildren().add(totpQrView);
 

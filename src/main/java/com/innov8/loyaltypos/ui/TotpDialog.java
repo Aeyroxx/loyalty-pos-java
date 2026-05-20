@@ -47,7 +47,7 @@ public class TotpDialog {
         Label cl = new Label("AUTH CODE"); cl.getStyleClass().add("field-label");
         TextField codeTf = new TextField();
         codeTf.setPromptText("000000");
-        codeTf.setStyle("-fx-background-color: -surface; -fx-text-fill: -ink; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 32; -fx-padding: 14 12; -fx-alignment: CENTER; -fx-border-color: rgba(255,255,255,0.12); -fx-background-radius: 6; -fx-border-radius: 6;");
+        codeTf.setStyle("-fx-background-color: -surface; -fx-text-fill: -ink; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 32; -fx-padding: 14 12; -fx-alignment: CENTER; -fx-border-color: -border-strong; -fx-background-radius: 6; -fx-border-radius: 6;");
         Label err = new Label();
         err.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 12;");
         err.setVisible(false); err.setManaged(false);
