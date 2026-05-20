@@ -261,7 +261,8 @@ public class LoginView {
                         new Stop(0.5, Color.web("#ffffff")),
                         new Stop(1, ACCENT)));
             } else {
-                t.setFill(Color.web("-ink", 0.90));
+                // Color.web() requires a literal hex — looked-up colors only work in CSS.
+                t.setFill(Color.web("#f4f4f5", 0.90));
             }
             flow.getChildren().add(t);
         }
