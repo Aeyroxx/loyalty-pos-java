@@ -16,7 +16,7 @@ public class ConfirmDialog {
         VBox content = new VBox(20);
         Label msg = new Label(message);
         msg.setWrapText(true);
-        msg.setStyle("-fx-text-fill: #a1a1aa; -fx-font-size: 14;");
+        msg.setStyle("-fx-text-fill: -ink-soft; -fx-font-size: 14;");
         content.getChildren().add(msg);
 
         HBox buttons = new HBox(10);

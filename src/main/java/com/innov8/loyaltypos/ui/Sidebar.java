@@ -77,7 +77,7 @@ public class Sidebar extends VBox {
         // User block
         VBox userBlock = new VBox(2);
         userBlock.setPadding(new Insets(12, 24, 12, 24));
-        userBlock.setStyle("-fx-border-color: transparent transparent #1a1a1a transparent;");
+        userBlock.setStyle("-fx-border-color: transparent transparent -input-bg transparent;");
         Label userName = new Label(App.ctx.currentUser != null ? App.ctx.currentUser.name : "");
         userName.setStyle("-fx-text-fill: #ccc; -fx-font-family: 'Barlow',sans-serif; -fx-font-size: 13; -fx-font-weight: 500;");
         Label userRole = new Label((App.ctx.currentUser != null ? App.ctx.currentUser.role : "").toUpperCase());
@@ -105,10 +105,10 @@ public class Sidebar extends VBox {
         // Bottom controls
         VBox bottom = new VBox(10);
         bottom.setPadding(new Insets(16, 24, 16, 24));
-        bottom.setStyle("-fx-border-color: #1a1a1a transparent transparent transparent;");
+        bottom.setStyle("-fx-border-color: -input-bg transparent transparent transparent;");
 
         Button themeBtn = new Button((App.ctx.theme.equals("dark") ? "☀  LIGHT MODE" : "◑  DARK MODE"));
-        themeBtn.setStyle("-fx-background-color: rgba(255,255,255,0.04); -fx-border-color: rgba(255,255,255,0.08); -fx-text-fill: #555; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 11; -fx-font-weight: 700; -fx-padding: 6 12; -fx-background-radius: 6; -fx-border-radius: 6;");
+        themeBtn.setStyle("-fx-background-color: -overlay-subtle; -fx-border-color: -border; -fx-text-fill: #555; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 11; -fx-font-weight: 700; -fx-padding: 6 12; -fx-background-radius: 6; -fx-border-radius: 6;");
         themeBtn.setMaxWidth(Double.MAX_VALUE);
         themeBtn.setOnAction(e -> { App.ctx.toggleTheme(); App.showShell(); });
         bottom.getChildren().add(themeBtn);

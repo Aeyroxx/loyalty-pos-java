@@ -42,7 +42,7 @@ public class Modal {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         Button close = new Button("×");
-        close.setStyle("-fx-background-color: rgba(255,255,255,0.05); -fx-border-color: rgba(255,255,255,0.10); -fx-text-fill: #71717a; -fx-min-width: 28; -fx-min-height: 28; -fx-max-width: 28; -fx-max-height: 28; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 0; -fx-font-size: 16;");
+        close.setStyle("-fx-background-color: -overlay-mid; -fx-border-color: -overlay-card; -fx-text-fill: -muted; -fx-min-width: 28; -fx-min-height: 28; -fx-max-width: 28; -fx-max-height: 28; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 0; -fx-font-size: 16;");
         close.setOnAction(e -> stage.close());
         header.getChildren().addAll(titleLabel, spacer, close);
         card.getChildren().add(header);

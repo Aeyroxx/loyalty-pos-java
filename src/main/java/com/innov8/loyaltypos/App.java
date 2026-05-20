@@ -22,6 +22,14 @@ public class App extends Application {
         Database.init(false);
         ctx = new AppContext();
         ctx.settings = SettingsService.getAll();
+        // Reconcile theme: if the persisted Setting differs from the Preferences value
+        // (e.g. user toggled it on another install), the Setting wins.
+        String settingsTheme = String.valueOf(ctx.settings.getOrDefault("theme", ctx.theme));
+        if (settingsTheme != null && !settingsTheme.isEmpty()
+                && !"null".equals(settingsTheme) && !settingsTheme.equals(ctx.theme)) {
+            ctx.theme = "light".equalsIgnoreCase(settingsTheme) ? "light" : "dark";
+            java.util.prefs.Preferences.userNodeForPackage(AppContext.class).put("pos_theme", ctx.theme);
+        }
         SyncService.startBackground();
 
         showLogin();

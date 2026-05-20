@@ -47,7 +47,7 @@ public class ExpensesView {
         VBox totalBox = new VBox(2);
         totalBox.setAlignment(Pos.CENTER_RIGHT);
         Label totLabel = new Label("TOTAL FOR " + filterDate.getValue());
-        totLabel.setStyle("-fx-text-fill: #52525b; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 11; -fx-font-weight: 700;");
+        totLabel.setStyle("-fx-text-fill: -faint; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 11; -fx-font-weight: 700;");
         totalLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 24; -fx-font-weight: 700;");
         totalBox.getChildren().addAll(totLabel, totalLabel);
         header.getChildren().addAll(title, spacer, totalBox);
@@ -168,7 +168,7 @@ public class ExpensesView {
     public Region getRoot() {
         ScrollPane sp = new ScrollPane(root);
         sp.setFitToWidth(true);
-        sp.setStyle("-fx-background-color: #09090b; -fx-background: #09090b;");
+        sp.setStyle("-fx-background-color: -paper; -fx-background: -paper;");
         return sp;
     }
 }

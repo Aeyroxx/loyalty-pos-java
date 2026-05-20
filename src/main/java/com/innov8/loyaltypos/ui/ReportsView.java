@@ -59,7 +59,7 @@ public class ReportsView {
         Label title = new Label("REPORTS"); title.getStyleClass().add("page-title");
         root.getChildren().add(title);
 
-        tabBar.setStyle("-fx-border-color: transparent transparent rgba(255,255,255,0.08) transparent;");
+        tabBar.setStyle("-fx-border-color: transparent transparent -border transparent;");
         for (String t : TABS) {
             Button b = new Button(t.toUpperCase());
             b.getStyleClass().add("tab-button");
@@ -214,10 +214,10 @@ public class ReportsView {
         else if ("success".equals(variant)) card.getStyleClass().add("summary-card-success");
         Label l = new Label(label.toUpperCase());
         l.setStyle("-fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 10; -fx-font-weight: 700; -fx-text-fill: " +
-                ("primary".equals(variant) ? "#d4690a" : ("danger".equals(variant) ? "#ef4444" : ("success".equals(variant) ? "#22c55e" : "#52525b"))) + ";");
+                ("primary".equals(variant) ? "#d4690a" : ("danger".equals(variant) ? "#ef4444" : ("success".equals(variant) ? "#22c55e" : "-faint"))) + ";");
         Label v = new Label(value);
         v.setStyle("-fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 16; -fx-font-weight: 600; -fx-text-fill: " +
-                ("danger".equals(variant) ? "#ef4444" : ("success".equals(variant) ? "#22c55e" : "#f4f4f5")) + ";");
+                ("danger".equals(variant) ? "#ef4444" : ("success".equals(variant) ? "#22c55e" : "-ink")) + ";");
         card.getChildren().addAll(l, v);
         return card;
     }
@@ -374,7 +374,7 @@ public class ReportsView {
     public Region getRoot() {
         ScrollPane sp = new ScrollPane(root);
         sp.setFitToWidth(true);
-        sp.setStyle("-fx-background-color: #09090b; -fx-background: #09090b;");
+        sp.setStyle("-fx-background-color: -paper; -fx-background: -paper;");
         return sp;
     }
 }

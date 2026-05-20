@@ -78,7 +78,7 @@ public class LoginView {
         root.getStyleClass().add("login-root");
         // Allow the view to shrink with the window — no fixed pref size.
         root.setMinSize(0, 0);
-        root.setStyle("-fx-background-color: #09090b;");
+        root.setStyle("-fx-background-color: -paper;");
 
         // Layer 1: ambient amber glow top-right + soft white glow bottom-left
         root.getChildren().add(buildAmbientGlows());
@@ -261,7 +261,7 @@ public class LoginView {
                         new Stop(0.5, Color.web("#ffffff")),
                         new Stop(1, ACCENT)));
             } else {
-                t.setFill(Color.web("#f4f4f5", 0.90));
+                t.setFill(Color.web("-ink", 0.90));
             }
             flow.getChildren().add(t);
         }
@@ -279,7 +279,7 @@ public class LoginView {
         HBox.setHgrow(l1, Priority.ALWAYS);
 
         Label txt = new Label("AUTHORIZED ACCESS ONLY");
-        txt.setStyle("-fx-text-fill: #52525b; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 10; -fx-font-weight: 700; -fx-letter-spacing: 0.2em;");
+        txt.setStyle("-fx-text-fill: -faint; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 10; -fx-font-weight: 700; -fx-letter-spacing: 0.2em;");
 
         Region l2 = new Region();
         l2.setPrefHeight(1);
@@ -509,11 +509,11 @@ public class LoginView {
         HBox footer = new HBox();
         footer.setAlignment(Pos.CENTER_LEFT);
         Label v = new Label("v1.3.5");
-        v.setStyle("-fx-text-fill: #52525b; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 10; -fx-letter-spacing: 0.15em;");
+        v.setStyle("-fx-text-fill: -faint; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 10; -fx-letter-spacing: 0.15em;");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         Label brand = new Label("LOYALTY POS");
-        brand.setStyle("-fx-text-fill: #52525b; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 10; -fx-letter-spacing: 0.15em;");
+        brand.setStyle("-fx-text-fill: -faint; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 10; -fx-letter-spacing: 0.15em;");
         footer.getChildren().addAll(v, spacer, brand);
         card.getChildren().add(footer);
 
@@ -561,7 +561,7 @@ public class LoginView {
     }
 
     private void applyTitleStyle() {
-        cardTitle.setStyle("-fx-text-fill: #a1a1aa; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 11; -fx-font-weight: 700; -fx-letter-spacing: 0.2em;");
+        cardTitle.setStyle("-fx-text-fill: -ink-soft; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 11; -fx-font-weight: 700; -fx-letter-spacing: 0.2em;");
     }
 
     private void applySubStyle() {

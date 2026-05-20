@@ -10,12 +10,23 @@
     -fx-control-inner-background: #ffffff;
     -fx-control-inner-background-alt: #f5f5f5;
     -fx-text-base-color: #18181b;
+    /* Light-mode token overrides — every Java inline style that uses one of
+       these names (e.g. -fx-background-color: -panel) flips automatically.  */
     -ink: #18181b;
+    -ink-soft: #3f3f46;
     -paper: #ffffff;
     -surface: #f5f5f5;
+    -panel: #f9fafb;
+    -panel-2: #f3f4f6;
+    -input-bg: #ffffff;
+    -input-border: #d4d4d8;
     -border: rgba(0,0,0,0.10);
     -border-strong: rgba(0,0,0,0.20);
+    -overlay-subtle: rgba(0,0,0,0.03);
+    -overlay-mid: rgba(0,0,0,0.05);
+    -overlay-card: rgba(0,0,0,0.08);
     -muted: #52525b;
+    -faint: #71717a;
 }
 
 /* Page surfaces */
@@ -26,9 +37,23 @@
 .surface, .theme-light .surface {
     -fx-background-color: #f5f5f5;
 }
+/* Sidebar follows the light surface so the entire app reads as light mode. */
 .bg-sidebar, .theme-light .bg-sidebar,
 .sidebar {
-    -fx-background-color: #18181b;  /* sidebar stays dark like most light-mode dashboards */
+    -fx-background-color: -panel-2;
+    -fx-border-color: transparent -border transparent transparent;
+}
+.theme-light .sidebar-logo,
+.theme-light .nav-button {
+    -fx-text-fill: #3f3f46;
+}
+.theme-light .nav-button:hover {
+    -fx-background-color: rgba(0,0,0,0.04);
+    -fx-text-fill: #18181b;
+}
+.theme-light .nav-button.active {
+    -fx-background-color: #18181b;
+    -fx-text-fill: #ffffff;
 }
 
 /* Modal */
@@ -138,3 +163,37 @@
 
 /* Summary cards (Reports) — keep variant tints */
 .summary-card { -fx-background-color: #f5f5f5; -fx-border-color: rgba(0,0,0,0.08); }
+
+/* ScrollPane viewports default to dark; force light when in light theme. */
+.theme-light .scroll-pane,
+.theme-light .scroll-pane > .viewport {
+    -fx-background-color: -paper;
+    -fx-background: -paper;
+}
+
+/* Pin keys / pin pad in light mode */
+.theme-light .pin-key {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #18181b;
+    -fx-border-color: #d4d4d8;
+}
+.theme-light .pin-key:hover {
+    -fx-background-color: #18181b;
+    -fx-text-fill: #ffffff;
+}
+.theme-light .pin-enter:disabled {
+    -fx-background-color: #e5e5e5;
+    -fx-text-fill: #a1a1aa;
+}
+
+/* Toolbar / surface rows light */
+.theme-light .toolbar-row {
+    -fx-background-color: -panel;
+    -fx-border-color: transparent transparent -border transparent;
+}
+
+/* Light-mode badges — keep accent hues but lighter backgrounds */
+.theme-light .badge-muted {
+    -fx-background-color: rgba(0,0,0,0.06);
+    -fx-text-fill: #52525b;
+}

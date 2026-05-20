@@ -68,12 +68,12 @@ public class PaymentDialog {
         HBox totalRow = new HBox();
         totalRow.setAlignment(Pos.CENTER_LEFT);
         totalRow.setPadding(new Insets(16, 20, 16, 20));
-        totalRow.setStyle("-fx-background-color: #0a0a0a; -fx-background-radius: 8; -fx-border-color: rgba(255,255,255,0.06); -fx-border-radius: 8;");
+        totalRow.setStyle("-fx-background-color: -panel-2; -fx-background-radius: 8; -fx-border-color: -border; -fx-border-radius: 8;");
         Label tl = new Label("TOTAL AMOUNT DUE");
-        tl.setStyle("-fx-text-fill: #71717a; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 13; -fx-font-weight: 700;");
+        tl.setStyle("-fx-text-fill: -muted; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 13; -fx-font-weight: 700;");
         Region s1 = new Region(); HBox.setHgrow(s1, Priority.ALWAYS);
         Label tv = new Label("₱" + Money.fmt(total));
-        tv.setStyle("-fx-text-fill: #f5f2ea; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 28; -fx-font-weight: 600;");
+        tv.setStyle("-fx-text-fill: -ink; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 28; -fx-font-weight: 600;");
         totalRow.getChildren().addAll(tl, s1, tv);
         root.getChildren().add(totalRow);
 
@@ -92,8 +92,8 @@ public class PaymentDialog {
         root.getChildren().add(detailBox);
 
         // Running / Change
-        runningBox.setStyle("-fx-padding: 12 0; -fx-border-color: rgba(255,255,255,0.06) transparent transparent transparent;");
-        Label rl1 = new Label("REMAINING BALANCE"); rl1.setStyle("-fx-text-fill: #71717a; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 13; -fx-font-weight: 700;");
+        runningBox.setStyle("-fx-padding: 12 0; -fx-border-color: -border transparent transparent transparent;");
+        Label rl1 = new Label("REMAINING BALANCE"); rl1.setStyle("-fx-text-fill: -muted; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 13; -fx-font-weight: 700;");
         runningLabel.setStyle("-fx-text-fill: #d4690a; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 18; -fx-font-weight: 600;");
         runningBox.getChildren().addAll(rl1, runningLabel);
         runningBox.setVisible(false); runningBox.setManaged(false);
@@ -135,10 +135,10 @@ public class PaymentDialog {
     private void updateMethodButton(Button b, String method) {
         boolean sel = selected.get(method);
         b.setStyle("-fx-padding: 12 8; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 14; -fx-font-weight: 700; -fx-background-radius: 8; -fx-border-radius: 8; -fx-cursor: hand; "
-                + "-fx-background-color: " + (sel ? "rgba(212,105,10,0.20)" : "rgba(255,255,255,0.03)") + "; "
-                + "-fx-border-color: " + (sel ? "#d4690a" : "rgba(255,255,255,0.10)") + "; "
+                + "-fx-background-color: " + (sel ? "rgba(212,105,10,0.20)" : "-overlay-subtle") + "; "
+                + "-fx-border-color: " + (sel ? "#d4690a" : "-overlay-card") + "; "
                 + "-fx-border-width: 1; "
-                + "-fx-text-fill: " + (sel ? "#f5f2ea" : "#71717a") + ";");
+                + "-fx-text-fill: " + (sel ? "-ink" : "-muted") + ";");
     }
 
     private void toggle(String method) {
@@ -173,20 +173,20 @@ public class PaymentDialog {
         for (String m : METHODS) {
             if (!selected.get(m)) continue;
             VBox card = new VBox(12);
-            card.setStyle("-fx-padding: 16 20; -fx-border-color: rgba(255,255,255,0.08); -fx-background-color: rgba(255,255,255,0.03); -fx-background-radius: 8; -fx-border-radius: 8;");
+            card.setStyle("-fx-padding: 16 20; -fx-border-color: -border; -fx-background-color: -overlay-subtle; -fx-background-radius: 8; -fx-border-radius: 8;");
 
             HBox header = new HBox(12);
             header.setAlignment(Pos.CENTER_LEFT);
             Label l = new Label(LABELS.get(m).toUpperCase());
             l.setStyle("-fx-text-fill: #d4690a; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 12; -fx-font-weight: 700;");
             Region sep = new Region(); HBox.setHgrow(sep, Priority.ALWAYS);
-            sep.setStyle("-fx-background-color: rgba(255,255,255,0.06);"); sep.setPrefHeight(1);
+            sep.setStyle("-fx-background-color: -border;"); sep.setPrefHeight(1);
             header.getChildren().addAll(l, sep);
             card.getChildren().add(header);
 
             TextField tf = new TextField();
             tf.setPromptText("0.00");
-            tf.setStyle("-fx-background-color: transparent; -fx-border-color: transparent transparent rgba(255,255,255,0.2) transparent; -fx-text-fill: #f4f4f5; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 22; -fx-font-weight: 600; -fx-alignment: CENTER-RIGHT; -fx-padding: 6 0;");
+            tf.setStyle("-fx-background-color: transparent; -fx-border-color: transparent transparent rgba(255,255,255,0.2) transparent; -fx-text-fill: -ink; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 22; -fx-font-weight: 600; -fx-alignment: CENTER-RIGHT; -fx-padding: 6 0;");
             // Pre-fill with remaining
             double currentPaid = 0;
             for (String mm : METHODS) {

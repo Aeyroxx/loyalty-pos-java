@@ -182,7 +182,7 @@ public class ProductsView {
     public Region getRoot() {
         javafx.scene.control.ScrollPane sp = new javafx.scene.control.ScrollPane(root);
         sp.setFitToWidth(true);
-        sp.setStyle("-fx-background-color: #09090b; -fx-background: #09090b;");
+        sp.setStyle("-fx-background-color: -paper; -fx-background: -paper;");
         return sp;
     }
 }

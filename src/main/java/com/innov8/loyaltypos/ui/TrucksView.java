@@ -32,7 +32,7 @@ public class TrucksView {
 
         Label title = new Label("TRUCKS"); title.getStyleClass().add("page-title");
         Label desc = new Label("Default prices per product for each registered plate number. Prices are saved automatically at checkout and can be updated here.");
-        desc.setStyle("-fx-text-fill: #71717a; -fx-font-size: 13;");
+        desc.setStyle("-fx-text-fill: -muted; -fx-font-size: 13;");
         desc.setWrapText(true);
 
         VBox top = new VBox(8, title, desc);
@@ -40,7 +40,7 @@ public class TrucksView {
         root.getChildren().add(top);
 
         listBox.getStyleClass().add("bordered-card");
-        listBox.setStyle("-fx-background-color: #18181b; -fx-border-color: rgba(255,255,255,0.08); -fx-background-radius: 8; -fx-border-radius: 8;");
+        listBox.setStyle("-fx-background-color: -surface; -fx-border-color: -border; -fx-background-radius: 8; -fx-border-radius: 8;");
         root.getChildren().add(listBox);
 
         load();
@@ -55,7 +55,7 @@ public class TrucksView {
             listBox.getChildren().add(header);
             if (trucks.isEmpty()) {
                 Label empty = new Label("No trucks recorded yet. Plate numbers are saved automatically after checkout.");
-                empty.setStyle("-fx-text-fill: #52525b; -fx-padding: 48; -fx-font-style: italic; -fx-alignment: center;");
+                empty.setStyle("-fx-text-fill: -faint; -fx-padding: 48; -fx-font-style: italic; -fx-alignment: center;");
                 empty.setMaxWidth(Double.MAX_VALUE);
                 empty.setAlignment(Pos.CENTER);
                 listBox.getChildren().add(empty);
@@ -80,7 +80,7 @@ public class TrucksView {
 
     private HBox headerRow() {
         HBox h = new HBox();
-        h.setStyle("-fx-background-color: #0a0a0a; -fx-padding: 10 14;");
+        h.setStyle("-fx-background-color: -panel-2; -fx-padding: 10 14;");
         h.setSpacing(10);
         h.getChildren().addAll(
                 colHeader("PLATE NO.", 160),
@@ -94,7 +94,7 @@ public class TrucksView {
 
     private Label colHeader(String text, double width) {
         Label l = new Label(text);
-        l.setStyle("-fx-text-fill: #52525b; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 11; -fx-font-weight: 700;");
+        l.setStyle("-fx-text-fill: -faint; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 11; -fx-font-weight: 700;");
         if (width > 0) l.setMinWidth(width);
         else HBox.setHgrow(l, Priority.ALWAYS);
         return l;
@@ -102,7 +102,7 @@ public class TrucksView {
 
     private HBox emptyRow(Truck t) {
         HBox row = new HBox(10);
-        row.setStyle("-fx-padding: 10 14; -fx-border-color: rgba(255,255,255,0.06) transparent transparent transparent;");
+        row.setStyle("-fx-padding: 10 14; -fx-border-color: -border transparent transparent transparent;");
         Label plate = new Label(t.plateNo);
         plate.setStyle("-fx-text-fill: #d4690a; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 13; -fx-font-weight: 700;");
         plate.setMinWidth(160);
@@ -124,7 +124,7 @@ public class TrucksView {
 
     private HBox priceRow(Truck t, TruckPrice price, boolean firstRow) {
         HBox row = new HBox(10);
-        row.setStyle("-fx-padding: 10 14; -fx-border-color: " + (firstRow ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.03)") + " transparent transparent transparent;");
+        row.setStyle("-fx-padding: 10 14; -fx-border-color: " + (firstRow ? "-border" : "-overlay-subtle") + " transparent transparent transparent;");
         row.setAlignment(Pos.CENTER_LEFT);
 
         Label plate = new Label(firstRow ? t.plateNo : "");
@@ -132,7 +132,7 @@ public class TrucksView {
         plate.setMinWidth(160);
 
         Label name = new Label(price.productName);
-        name.setStyle("-fx-text-fill: #f4f4f5;");
+        name.setStyle("-fx-text-fill: -ink;");
         HBox.setHgrow(name, Priority.ALWAYS);
 
         TextField priceField = new TextField(Money.fmt(price.defaultPrice));
@@ -143,11 +143,11 @@ public class TrucksView {
         priceField.setManaged(false);
 
         Label priceLbl = new Label(sym + Money.fmt(price.defaultPrice));
-        priceLbl.setStyle("-fx-text-fill: #f4f4f5; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 13; -fx-font-weight: 600;");
+        priceLbl.setStyle("-fx-text-fill: -ink; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 13; -fx-font-weight: 600;");
         priceLbl.setMinWidth(180);
 
         Label updated = new Label(formatDate(price.updatedAt));
-        updated.setStyle("-fx-text-fill: #52525b; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 11;");
+        updated.setStyle("-fx-text-fill: -faint; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 11;");
         updated.setMinWidth(160);
 
         Button edit = new Button("Edit Price");
@@ -219,7 +219,7 @@ public class TrucksView {
     public Region getRoot() {
         ScrollPane sp = new ScrollPane(root);
         sp.setFitToWidth(true);
-        sp.setStyle("-fx-background-color: #09090b; -fx-background: #09090b;");
+        sp.setStyle("-fx-background-color: -paper; -fx-background: -paper;");
         return sp;
     }
 }

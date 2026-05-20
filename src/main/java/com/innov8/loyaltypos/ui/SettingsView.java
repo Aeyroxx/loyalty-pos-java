@@ -111,14 +111,14 @@ public class SettingsView {
     }
 
     private void renderDbInfo() {
-        Region div = new Region(); div.setStyle("-fx-background-color: rgba(255,255,255,0.08);"); div.setPrefHeight(1);
+        Region div = new Region(); div.setStyle("-fx-background-color: -border;"); div.setPrefHeight(1);
         root.getChildren().add(div);
         Label t = new Label("DATABASE"); t.getStyleClass().add("section-title");
         root.getChildren().add(t);
 
         String path = Database.currentDbPath();
         Label pathLbl = new Label(path == null ? "(unknown)" : path);
-        pathLbl.setStyle("-fx-text-fill: #a1a1aa; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 11;");
+        pathLbl.setStyle("-fx-text-fill: -ink-soft; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 11;");
         pathLbl.setWrapText(true);
 
         HBox row = new HBox(12);
@@ -140,7 +140,7 @@ public class SettingsView {
     private void renderSection(Section section) {
         Label title = new Label(section.title.toUpperCase());
         title.getStyleClass().add("section-title");
-        title.setStyle(title.getStyle() + " -fx-padding: 0 0 8 0; -fx-border-color: transparent transparent rgba(255,255,255,0.06) transparent;");
+        title.setStyle(title.getStyle() + " -fx-padding: 0 0 8 0; -fx-border-color: transparent transparent -border transparent;");
         root.getChildren().add(title);
 
         GridPane grid = new GridPane();
@@ -206,7 +206,7 @@ public class SettingsView {
     }
 
     private void renderUsers() {
-        Region div = new Region(); div.setStyle("-fx-background-color: rgba(255,255,255,0.08);"); div.setPrefHeight(1);
+        Region div = new Region(); div.setStyle("-fx-background-color: -border;"); div.setPrefHeight(1);
         root.getChildren().add(div);
 
         HBox header = new HBox();
@@ -307,11 +307,11 @@ public class SettingsView {
     private final ImageView totpQrView = new ImageView();
 
     private void renderTotp() {
-        Region div = new Region(); div.setStyle("-fx-background-color: rgba(255,255,255,0.08);"); div.setPrefHeight(1);
+        Region div = new Region(); div.setStyle("-fx-background-color: -border;"); div.setPrefHeight(1);
         root.getChildren().add(div);
         Label t = new Label("ADMIN 2FA (GOOGLE AUTHENTICATOR)"); t.getStyleClass().add("section-title");
         Label desc = new Label("Required for voiding or deleting transactions. Admin scans the QR once with Google Authenticator.");
-        desc.setStyle("-fx-text-fill: #52525b; -fx-font-size: 13;");
+        desc.setStyle("-fx-text-fill: -faint; -fx-font-size: 13;");
         desc.setWrapText(true);
         root.getChildren().addAll(t, desc);
 
@@ -323,7 +323,7 @@ public class SettingsView {
         HBox row = new HBox(16);
         row.setAlignment(Pos.CENTER_LEFT);
         Label status = new Label(TotpService.isConfigured() ? "● Configured" : "○ Not configured");
-        status.setStyle("-fx-text-fill: " + (TotpService.isConfigured() ? "#22c55e" : "#52525b") + "; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 12;");
+        status.setStyle("-fx-text-fill: " + (TotpService.isConfigured() ? "#22c55e" : "-faint") + "; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 12;");
         Button setup = new Button(TotpService.isConfigured() ? "Reset & Regenerate QR" : "Setup Google Authenticator");
         setup.getStyleClass().addAll("btn", "btn-primary"); setup.setStyle("-fx-padding: 8 20; -fx-font-size: 13;");
         setup.setOnAction(e -> {
@@ -343,7 +343,7 @@ public class SettingsView {
             if (ConfirmDialog.show(root.getScene().getWindow(), "Remove 2FA? Voids will be blocked until re-configured.")) {
                 TotpService.reset();
                 status.setText("○ Not configured");
-                status.setStyle("-fx-text-fill: #52525b; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 12;");
+                status.setStyle("-fx-text-fill: -faint; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 12;");
                 totpQrView.setVisible(false); totpQrView.setManaged(false);
             }
         });
@@ -352,13 +352,13 @@ public class SettingsView {
     }
 
     private void renderSync() {
-        Region div = new Region(); div.setStyle("-fx-background-color: rgba(255,255,255,0.08);"); div.setPrefHeight(1);
+        Region div = new Region(); div.setStyle("-fx-background-color: -border;"); div.setPrefHeight(1);
         root.getChildren().add(div);
         Label t = new Label("API SYNC"); t.getStyleClass().add("section-title");
         root.getChildren().add(t);
 
         Label statusLbl = new Label();
-        statusLbl.setStyle("-fx-text-fill: #a1a1aa; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 12;");
+        statusLbl.setStyle("-fx-text-fill: -ink-soft; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 12;");
         Runnable refresh = () -> {
             try {
                 SyncService.Status s = SyncService.status();
@@ -415,7 +415,7 @@ public class SettingsView {
     public Region getRoot() {
         ScrollPane sp = new ScrollPane(root);
         sp.setFitToWidth(true);
-        sp.setStyle("-fx-background-color: #09090b; -fx-background: #09090b;");
+        sp.setStyle("-fx-background-color: -paper; -fx-background: -paper;");
         return sp;
     }
 }

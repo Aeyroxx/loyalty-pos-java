@@ -220,7 +220,7 @@ public class PoAccountsView {
         HBox phHeader = new HBox();
         phHeader.setAlignment(Pos.CENTER_LEFT);
         Label phTitle = new Label("PAYMENT HISTORY");
-        phTitle.setStyle("-fx-text-fill: #f4f4f5; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 13; -fx-font-weight: 700;");
+        phTitle.setStyle("-fx-text-fill: -ink; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 13; -fx-font-weight: 700;");
         Region s = new Region(); HBox.setHgrow(s, Priority.ALWAYS);
         phHeader.getChildren().addAll(phTitle, s);
         if (isAdmin && "open".equals(selected.status)) {
@@ -252,18 +252,18 @@ public class PoAccountsView {
 
     private VBox summaryCard(String label, String value, boolean accent) {
         Label l = new Label(label);
-        l.setStyle("-fx-text-fill: " + (accent ? "#22c55e" : "#52525b") + "; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 10; -fx-font-weight: 700;");
+        l.setStyle("-fx-text-fill: " + (accent ? "#22c55e" : "-faint") + "; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 10; -fx-font-weight: 700;");
         Label v = new Label(value);
-        v.setStyle("-fx-text-fill: " + (accent ? "#22c55e" : "#f4f4f5") + "; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 18; -fx-font-weight: 600;");
+        v.setStyle("-fx-text-fill: " + (accent ? "#22c55e" : "-ink") + "; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 18; -fx-font-weight: 600;");
         VBox box = new VBox(6, l, v);
         box.setPadding(new Insets(16, 20, 16, 20));
-        box.setStyle("-fx-background-color: " + (accent ? "rgba(34,197,94,0.1)" : "rgba(255,255,255,0.03)") + "; -fx-border-color: " + (accent ? "rgba(34,197,94,0.2)" : "rgba(255,255,255,0.06)") + "; -fx-background-radius: 8; -fx-border-radius: 8;");
+        box.setStyle("-fx-background-color: " + (accent ? "rgba(34,197,94,0.1)" : "-overlay-subtle") + "; -fx-border-color: " + (accent ? "rgba(34,197,94,0.2)" : "-border") + "; -fx-background-radius: 8; -fx-border-radius: 8;");
         return box;
     }
 
     private Label infoLabel(String text) {
         Label l = new Label(text);
-        l.setStyle("-fx-text-fill: #a1a1aa; -fx-font-size: 13;");
+        l.setStyle("-fx-text-fill: -ink-soft; -fx-font-size: 13;");
         return l;
     }
 
@@ -321,7 +321,7 @@ public class PoAccountsView {
     private void openPayment(PoAccount selected) {
         VBox content = new VBox(16);
         Label note = new Label("Recording payment for: " + selected.customerName);
-        note.setStyle("-fx-text-fill: #a1a1aa; -fx-font-size: 13;");
+        note.setStyle("-fx-text-fill: -ink-soft; -fx-font-size: 13;");
         content.getChildren().add(note);
 
         Label err = new Label(); err.getStyleClass().add("error-banner");
@@ -358,7 +358,7 @@ public class PoAccountsView {
     public Region getRoot() {
         ScrollPane sp = new ScrollPane(root);
         sp.setFitToWidth(true);
-        sp.setStyle("-fx-background-color: #09090b; -fx-background: #09090b;");
+        sp.setStyle("-fx-background-color: -paper; -fx-background: -paper;");
         return sp;
     }
 }

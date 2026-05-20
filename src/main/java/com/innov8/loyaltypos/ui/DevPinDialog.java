@@ -24,7 +24,7 @@ public class DevPinDialog {
         VBox card = new VBox(16);
         card.setAlignment(Pos.CENTER);
         card.setPadding(new Insets(28));
-        card.setStyle("-fx-background-color: #111; -fx-border-color: #222; -fx-border-radius: 16; -fx-background-radius: 16;");
+        card.setStyle("-fx-background-color: -panel; -fx-border-color: #222; -fx-border-radius: 16; -fx-background-radius: 16;");
 
         Label title = new Label(currentDevMode ? "EXIT DEV MODE" : "DEV MODE");
         title.setStyle("-fx-text-fill: " + (currentDevMode ? "#22c55e" : "#d4690a") + "; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 13; -fx-font-weight: 700;");

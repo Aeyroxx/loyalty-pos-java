@@ -25,9 +25,9 @@ public class TotpDialog {
         Label icon = new Label("🔐");
         icon.setStyle("-fx-font-size: 36;");
         Label tl = new Label(title.toUpperCase());
-        tl.setStyle("-fx-text-fill: #f4f4f5; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 17; -fx-font-weight: 800;");
+        tl.setStyle("-fx-text-fill: -ink; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 17; -fx-font-weight: 800;");
         Label sub = new Label("Enter the 6-digit code from admin's Google Authenticator");
-        sub.setStyle("-fx-text-fill: #52525b; -fx-font-size: 13;");
+        sub.setStyle("-fx-text-fill: -faint; -fx-font-size: 13;");
         sub.setWrapText(true);
         sub.setMaxWidth(300);
         sub.setAlignment(Pos.CENTER);
@@ -47,7 +47,7 @@ public class TotpDialog {
         Label cl = new Label("AUTH CODE"); cl.getStyleClass().add("field-label");
         TextField codeTf = new TextField();
         codeTf.setPromptText("000000");
-        codeTf.setStyle("-fx-background-color: #18181b; -fx-text-fill: #f4f4f5; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 32; -fx-padding: 14 12; -fx-alignment: CENTER; -fx-border-color: rgba(255,255,255,0.12); -fx-background-radius: 6; -fx-border-radius: 6;");
+        codeTf.setStyle("-fx-background-color: -surface; -fx-text-fill: -ink; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 32; -fx-padding: 14 12; -fx-alignment: CENTER; -fx-border-color: rgba(255,255,255,0.12); -fx-background-radius: 6; -fx-border-radius: 6;");
         Label err = new Label();
         err.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 12;");
         err.setVisible(false); err.setManaged(false);

@@ -58,7 +58,7 @@ public class TransactionsView {
         VBox toBox = new VBox(4); Label tl = new Label("TO (MM/DD/YY)"); tl.getStyleClass().add("field-label"); toBox.getChildren().addAll(tl, toDp);
         Button apply = new Button("Filter"); apply.getStyleClass().addAll("btn", "btn-primary"); apply.setOnAction(e -> load());
         Button clear = new Button("Clear"); clear.getStyleClass().addAll("btn", "btn-ghost"); clear.setOnAction(e -> { fromDp.setValue(null); toDp.setValue(null); load(); });
-        countLabel.setStyle("-fx-text-fill: #52525b;");
+        countLabel.setStyle("-fx-text-fill: -faint;");
         Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button dayLogThermal = new Button("Day Log: Thermal");
@@ -217,7 +217,7 @@ public class TransactionsView {
             if (tx.deliveryCharge > 0) totals.getChildren().add(infoLabel("Delivery: " + sym + Money.fmt(tx.deliveryCharge)));
             if (tx.discount > 0) totals.getChildren().add(infoLabel("Less: (" + sym + Money.fmt(tx.discount) + ")"));
             Label totalDue = new Label("TOTAL: " + sym + Money.fmt(tx.totalAmount));
-            totalDue.setStyle("-fx-text-fill: #f4f4f5; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 16; -fx-font-weight: 700;");
+            totalDue.setStyle("-fx-text-fill: -ink; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 16; -fx-font-weight: 700;");
             totals.getChildren().add(totalDue);
             content.getChildren().add(totals);
 
@@ -227,7 +227,7 @@ public class TransactionsView {
                 for (Payment p : tx.payments) {
                     HBox row = new HBox(12);
                     Label m = new Label(p.method.toUpperCase()); m.setStyle("-fx-text-fill: #d4690a; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-weight: 700; -fx-min-width: 60;");
-                    Label a = new Label(sym + Money.fmt(p.amount)); a.setStyle("-fx-text-fill: #f4f4f5; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-weight: 600;");
+                    Label a = new Label(sym + Money.fmt(p.amount)); a.setStyle("-fx-text-fill: -ink; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-weight: 600;");
                     row.getChildren().addAll(m, a);
                     if (p.referenceNo != null && !p.referenceNo.isEmpty()) row.getChildren().add(infoLabel("Ref: " + p.referenceNo));
                     if (p.senderName != null && !p.senderName.isEmpty()) row.getChildren().add(infoLabel("From: " + p.senderName));
@@ -275,7 +275,7 @@ public class TransactionsView {
     private void pickDate(LocalDate initial, java.util.function.Consumer<LocalDate> onPick) {
         VBox content = new VBox(16);
         Label info = new Label("Choose the date to print the End-of-Day log for:");
-        info.setStyle("-fx-text-fill: #a1a1aa; -fx-font-size: 13;");
+        info.setStyle("-fx-text-fill: -ink-soft; -fx-font-size: 13;");
         DatePicker dp = new DatePicker(initial);
         dp.setMaxWidth(Double.MAX_VALUE);
         content.getChildren().addAll(info, dp);
@@ -317,7 +317,7 @@ public class TransactionsView {
 
     private Label infoLabel(String text) {
         Label l = new Label(text);
-        l.setStyle("-fx-text-fill: #a1a1aa; -fx-font-size: 13;");
+        l.setStyle("-fx-text-fill: -ink-soft; -fx-font-size: 13;");
         return l;
     }
 
@@ -326,7 +326,7 @@ public class TransactionsView {
     public Region getRoot() {
         ScrollPane sp = new ScrollPane(root);
         sp.setFitToWidth(true);
-        sp.setStyle("-fx-background-color: #09090b; -fx-background: #09090b;");
+        sp.setStyle("-fx-background-color: -paper; -fx-background: -paper;");
         return sp;
     }
 }

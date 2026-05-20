@@ -63,17 +63,17 @@ public class PosView {
 
     public PosView() {
         sym = App.ctx.getCurrencySymbol();
-        root.setStyle("-fx-background-color: #09090b;");
+        root.setStyle("-fx-background-color: -paper;");
 
         // ── Left product panel ──────────────────────────────────────────────
         VBox left = new VBox();
         left.setPrefWidth(260);
         left.setMinWidth(260);
-        left.setStyle("-fx-background-color: #111; -fx-border-color: transparent rgba(255,255,255,0.08) transparent transparent;");
+        left.setStyle("-fx-background-color: -panel; -fx-border-color: transparent -border transparent transparent;");
 
         VBox searchBox = new VBox();
         searchBox.setPadding(new Insets(12));
-        searchBox.setStyle("-fx-border-color: transparent transparent rgba(255,255,255,0.08) transparent;");
+        searchBox.setStyle("-fx-border-color: transparent transparent -border transparent;");
         searchTf.setPromptText("Search products...");
         searchTf.getStyleClass().add("text-field");
         searchTf.textProperty().addListener((obs, o, v) -> applyFilter());
@@ -81,19 +81,19 @@ public class PosView {
         left.getChildren().add(searchBox);
 
         ListView<Product> productListView = new ListView<>(filteredProducts);
-        productListView.setStyle("-fx-background-color: #111;");
+        productListView.setStyle("-fx-background-color: -panel;");
         productListView.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
             @Override protected void updateItem(Product p, boolean empty) {
                 super.updateItem(p, empty);
                 if (empty || p == null) { setText(null); setGraphic(null); setStyle(""); return; }
                 VBox box = new VBox(2);
                 Label name = new Label(p.name);
-                name.setStyle("-fx-text-fill: #f4f4f5; -fx-font-weight: 600; -fx-font-size: 13;");
+                name.setStyle("-fx-text-fill: -ink; -fx-font-weight: 600; -fx-font-size: 13;");
                 Label info = new Label(sym + Money.fmt(p.pricePerUnit) + " / " + p.unit);
-                info.setStyle("-fx-text-fill: #71717a; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 11;");
+                info.setStyle("-fx-text-fill: -muted; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 11;");
                 box.getChildren().addAll(name, info);
                 setGraphic(box);
-                setStyle("-fx-background-color: transparent; -fx-padding: 8 16; -fx-border-color: transparent transparent rgba(255,255,255,0.04) transparent;");
+                setStyle("-fx-background-color: transparent; -fx-padding: 8 16; -fx-border-color: transparent transparent -overlay-subtle transparent;");
             }
         });
         productListView.setOnMouseClicked(e -> {
@@ -106,13 +106,13 @@ public class PosView {
 
         // ── Center: customer/date/plate, cart, totals ────────────────────────
         VBox center = new VBox();
-        center.setStyle("-fx-background-color: #09090b;");
+        center.setStyle("-fx-background-color: -paper;");
 
         // Top row: customer / date / plate
         HBox topRow = new HBox(16);
         topRow.setAlignment(Pos.CENTER_LEFT);
         topRow.setPadding(new Insets(10, 20, 10, 20));
-        topRow.setStyle("-fx-background-color: #111; -fx-border-color: transparent transparent rgba(255,255,255,0.08) transparent;");
+        topRow.setStyle("-fx-background-color: -panel; -fx-border-color: transparent transparent -border transparent;");
 
         // Stack each field as label-above-control so the plate textbox sits at the
         // same baseline as customer/date (was: plate VBox rode high above its label).
@@ -205,7 +205,7 @@ public class PosView {
         HBox bottom = new HBox(32);
         bottom.setPadding(new Insets(16, 20, 16, 20));
         bottom.setAlignment(Pos.CENTER_RIGHT);
-        bottom.setStyle("-fx-background-color: #111; -fx-border-color: rgba(255,255,255,0.08) transparent transparent transparent;");
+        bottom.setStyle("-fx-background-color: -panel; -fx-border-color: -border transparent transparent transparent;");
 
         VBox feesBox = new VBox(10);
         feesBox.getChildren().addAll(feeRow("Delivery Charge", deliveryTf), feeRow("Discount", discountTf));
@@ -214,8 +214,8 @@ public class PosView {
 
         VBox totalBox = new VBox(2);
         totalBox.setAlignment(Pos.CENTER_RIGHT);
-        Label totLbl = new Label("TOTAL"); totLbl.setStyle("-fx-text-fill: #52525b; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 11; -fx-font-weight: 700;");
-        totalLabel.setStyle("-fx-text-fill: #f4f4f5; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 32; -fx-font-weight: 600;");
+        Label totLbl = new Label("TOTAL"); totLbl.setStyle("-fx-text-fill: -faint; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 11; -fx-font-weight: 700;");
+        totalLabel.setStyle("-fx-text-fill: -ink; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 32; -fx-font-weight: 600;");
         totalBox.getChildren().addAll(totLbl, totalLabel);
 
         Button charge = new Button("CHARGE");
@@ -243,18 +243,18 @@ public class PosView {
     private static Region sep() {
         Region r = new Region();
         r.setPrefSize(1, 28);
-        r.setStyle("-fx-background-color: rgba(255,255,255,0.08);");
+        r.setStyle("-fx-background-color: -border;");
         return r;
     }
 
     private HBox feeRow(String label, TextField tf) {
         Label l = new Label(label.toUpperCase());
-        l.setStyle("-fx-text-fill: #52525b; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 12; -fx-font-weight: 700;");
+        l.setStyle("-fx-text-fill: -faint; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 12; -fx-font-weight: 700;");
         l.setMinWidth(120);
         l.setStyle(l.getStyle() + " -fx-alignment: CENTER-RIGHT;");
         tf.setPromptText("0.00");
         tf.setMaxWidth(120);
-        tf.setStyle("-fx-background-color: transparent; -fx-border-color: transparent transparent rgba(255,255,255,0.15) transparent; -fx-text-fill: #f4f4f5; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 13; -fx-alignment: CENTER-RIGHT;");
+        tf.setStyle("-fx-background-color: transparent; -fx-border-color: transparent transparent -border-strong transparent; -fx-text-fill: -ink; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 13; -fx-alignment: CENTER-RIGHT;");
         HBox h = new HBox(12, l, tf);
         h.setAlignment(Pos.CENTER_LEFT);
         return h;
@@ -267,7 +267,7 @@ public class PosView {
                 if (empty || it == null) { setGraphic(null); return; }
                 TextField tf = new TextField(isQty ? Money.fmt(it.quantity) : (it.customPrice == null ? "" : Money.fmt(it.customPrice)));
                 tf.setPromptText(isQty ? "" : Money.fmt(it.unitPrice));
-                tf.setStyle("-fx-background-color: rgba(255,255,255,0.05); -fx-border-color: rgba(255,255,255,0.10); -fx-text-fill: " + (it.customPrice != null && !isQty ? "#d4690a" : "#f4f4f5") + "; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 13; -fx-padding: 5 8; -fx-background-radius: 4; -fx-border-radius: 4;");
+                tf.setStyle("-fx-background-color: -overlay-mid; -fx-border-color: -overlay-card; -fx-text-fill: " + (it.customPrice != null && !isQty ? "#d4690a" : "-ink") + "; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 13; -fx-padding: 5 8; -fx-background-radius: 4; -fx-border-radius: 4;");
                 tf.setMaxWidth(isQty ? 100 : 140);
                 tf.setPrefWidth(isQty ? 100 : 140);
                 tf.textProperty().addListener((o, a, b) -> {
@@ -354,7 +354,7 @@ public class PosView {
                 recalc();
             } else {
                 truckIsNew = (t == null);
-                truckInfoLabel.setStyle("-fx-text-fill: #52525b; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 10; -fx-font-weight: 700;");
+                truckInfoLabel.setStyle("-fx-text-fill: -faint; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 10; -fx-font-weight: 700;");
                 truckInfoLabel.setText(truckIsNew ? "◇ New truck" : "");
             }
         } catch (Exception e) { showError(e); }
@@ -420,7 +420,7 @@ public class PosView {
         content.setAlignment(Pos.CENTER);
 
         Label saved = new Label("Invoice saved");
-        saved.setStyle("-fx-text-fill: #71717a; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 13;");
+        saved.setStyle("-fx-text-fill: -muted; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 13;");
         Label inv = new Label(tx.invoiceNo);
         inv.setStyle("-fx-text-fill: #d4690a; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 28; -fx-font-weight: 800;");
         content.getChildren().addAll(saved, inv);
