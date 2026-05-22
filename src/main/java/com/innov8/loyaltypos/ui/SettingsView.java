@@ -98,6 +98,34 @@ public class SettingsView {
 
         for (Section s : SECTIONS) renderSection(s);
 
+        // Quick "Test AI connection" button — round-trips a tiny prompt to Gemini.
+        Button testAi = new Button("✨ Test Gemini Connection");
+        testAi.getStyleClass().addAll("btn", "btn-secondary");
+        testAi.setStyle("-fx-padding: 8 20; -fx-font-size: 12;");
+        testAi.setOnAction(e -> {
+            // Commit any unsaved field changes first so the test uses live values
+            saveAll(new Button());
+            testAi.setText("✨ Calling Gemini…");
+            testAi.setDisable(true);
+            new Thread(() -> {
+                String result; boolean ok;
+                try {
+                    result = com.innov8.loyaltypos.service.AIService.generate("Reply with the single word: OK").trim();
+                    ok = true;
+                } catch (Exception ex) { result = ex.getMessage(); ok = false; }
+                final String msg = result; final boolean fOk = ok;
+                javafx.application.Platform.runLater(() -> {
+                    testAi.setText("✨ Test Gemini Connection");
+                    testAi.setDisable(false);
+                    Label body = new Label((fOk ? "Gemini replied: " : "Failed: ") + msg);
+                    body.setWrapText(true);
+                    body.setMaxWidth(520);
+                    new Modal(root.getScene().getWindow(), fOk ? "AI Ready" : "AI Error", body).show();
+                });
+            }, "ai-test").start();
+        });
+        root.getChildren().add(testAi);
+
         Button save = new Button("Save Settings");
         save.getStyleClass().addAll("btn", "btn-primary");
         save.setStyle("-fx-padding: 12 32; -fx-font-size: 14;");

@@ -119,6 +119,15 @@ public class ProductsView {
         TextField codeTf = labeledField(content, "Item Code (unique)", form.itemCode == null ? "" : form.itemCode);
         TextField nameTf = labeledField(content, "Name", form.name);
         TextField descTf = labeledField(content, "Description / Grade / Texture", form.description == null ? "" : form.description);
+
+        // AI helper: generate a one-line product description from code + name + unit
+        Button aiDescBtn = new Button("✨ Suggest description");
+        aiDescBtn.getStyleClass().addAll("btn", "btn-secondary");
+        aiDescBtn.setStyle("-fx-padding: 4 12; -fx-font-size: 11;");
+        HBox aiRow = new HBox(aiDescBtn);
+        aiRow.setAlignment(Pos.CENTER_LEFT);
+        content.getChildren().add(aiRow);
+
         TextField priceTf = labeledField(content, "Price per Unit", form.pricePerUnit > 0 ? String.valueOf(form.pricePerUnit) : "");
         TextField stockTf = labeledField(content, "Stock Quantity", form.stockQty > 0 ? String.valueOf(form.stockQty) : "");
 
@@ -138,6 +147,34 @@ public class ProductsView {
         save.getStyleClass().addAll("btn", "btn-primary");
         btns.getChildren().addAll(spacer, cancel, save);
         content.getChildren().add(btns);
+
+        aiDescBtn.setOnAction(e -> {
+            String code = codeTf.getText() == null ? "" : codeTf.getText().trim();
+            String name = nameTf.getText() == null ? "" : nameTf.getText().trim();
+            String unit = unitCb.getValue();
+            if (code.isEmpty() || name.isEmpty()) {
+                showError(new Exception("Fill in item code and name first."));
+                return;
+            }
+            aiDescBtn.setText("✨ Asking AI…");
+            aiDescBtn.setDisable(true);
+            new Thread(() -> {
+                try {
+                    String out = com.innov8.loyaltypos.service.AIService.suggestProductDescription(code, name, unit);
+                    javafx.application.Platform.runLater(() -> {
+                        descTf.setText(out);
+                        aiDescBtn.setText("✨ Suggest description");
+                        aiDescBtn.setDisable(false);
+                    });
+                } catch (Exception ex) {
+                    javafx.application.Platform.runLater(() -> {
+                        aiDescBtn.setText("✨ Suggest description");
+                        aiDescBtn.setDisable(false);
+                        showError(ex);
+                    });
+                }
+            }, "ai-prod-desc").start();
+        });
 
         Modal modal = new Modal(root.getScene().getWindow(), editing == null ? "Add Product" : "Edit Product", content);
         cancel.setOnAction(e -> modal.close());

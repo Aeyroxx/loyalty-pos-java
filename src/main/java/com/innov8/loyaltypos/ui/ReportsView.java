@@ -150,7 +150,53 @@ public class ReportsView {
                 PrinterService.printReport(currentTab, range, revRows, totals(total, cash, gcash, maya, po, delivery), App.ctx.settings, printer);
             } catch (Exception ex) { new Modal(root.getScene().getWindow(), "Error", new Label(ex.getMessage())).show(); }
         });
-        printRow.getChildren().addAll(pdf, thermal);
+        // AI summary button — produces a natural-language summary of the current view
+        Button aiSummary = new Button("✨ AI Summary");
+        aiSummary.getStyleClass().addAll("btn", "btn-primary");
+        aiSummary.setStyle("-fx-padding: 6 16; -fx-font-size: 12;");
+        final double fTotal = total, fCash = cash, fGcash = gcash, fMaya = maya,
+                fPo = po, fDelivery = delivery, fExp = totalExpenses, fProfit = profit;
+        final String fTab = currentTab;
+        final java.util.Map<String, String> fRange = range;
+        aiSummary.setOnAction(e -> {
+            aiSummary.setText("✨ Analyzing…");
+            aiSummary.setDisable(true);
+            StringBuilder md = new StringBuilder();
+            md.append("Report: ").append(fTab).append(" (").append(fRange.getOrDefault("from","")).append(" → ").append(fRange.getOrDefault("to","")).append(")\n");
+            md.append("Total revenue: ").append(sym).append(Money.fmt(fTotal)).append("\n");
+            md.append("Cash: ").append(sym).append(Money.fmt(fCash))
+              .append(" | GCash: ").append(sym).append(Money.fmt(fGcash))
+              .append(" | Maya: ").append(sym).append(Money.fmt(fMaya))
+              .append(" | PO: ").append(sym).append(Money.fmt(fPo)).append("\n");
+            md.append("Delivery fees: ").append(sym).append(Money.fmt(fDelivery)).append("\n");
+            md.append("Expenses: ").append(sym).append(Money.fmt(fExp)).append("\n");
+            md.append("Net profit: ").append(sym).append(Money.fmt(fProfit)).append("\n\n");
+            md.append("Daily breakdown:\n");
+            for (RevenueRow r : revRows) {
+                md.append("- ").append(r.day).append(": ").append(sym).append(Money.fmt(r.total)).append("\n");
+            }
+            new Thread(() -> {
+                try {
+                    String out = com.innov8.loyaltypos.service.AIService.summarizeSales(md.toString());
+                    javafx.application.Platform.runLater(() -> {
+                        aiSummary.setText("✨ AI Summary");
+                        aiSummary.setDisable(false);
+                        Label body = new Label(out);
+                        body.setWrapText(true);
+                        body.setMaxWidth(560);
+                        body.setStyle("-fx-text-fill: -ink; -fx-font-size: 13; -fx-line-spacing: 4;");
+                        new Modal(root.getScene().getWindow(), "AI Summary — " + fTab, body, true).show();
+                    });
+                } catch (Exception ex) {
+                    javafx.application.Platform.runLater(() -> {
+                        aiSummary.setText("✨ AI Summary");
+                        aiSummary.setDisable(false);
+                        new Modal(root.getScene().getWindow(), "AI Error", new Label(ex.getMessage())).show();
+                    });
+                }
+            }, "ai-sales-summary").start();
+        });
+        printRow.getChildren().addAll(aiSummary, pdf, thermal);
         content.getChildren().add(printRow);
 
         // Summary cards

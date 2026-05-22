@@ -80,6 +80,32 @@ public class ExpensesView {
         amountRow.setAlignment(Pos.BOTTOM_LEFT);
         VBox amountBox = field("Amount (₱)", amountTf);
         HBox.setHgrow(amountBox, Priority.ALWAYS);
+        // AI helper: classify free-text description into a known category
+        Button aiCatBtn = new Button("✨ Auto-categorize");
+        aiCatBtn.getStyleClass().addAll("btn", "btn-secondary");
+        aiCatBtn.setStyle("-fx-padding: 6 14; -fx-font-size: 12;");
+        aiCatBtn.setOnAction(e -> {
+            String d = descTf.getText() == null ? "" : descTf.getText().trim();
+            if (d.isEmpty()) { showError(new Exception("Type the expense description first.")); return; }
+            aiCatBtn.setText("✨ Thinking…");
+            aiCatBtn.setDisable(true);
+            new Thread(() -> {
+                try {
+                    String out = com.innov8.loyaltypos.service.AIService.suggestExpenseCategory(d).trim();
+                    javafx.application.Platform.runLater(() -> {
+                        for (String cat : CATEGORIES) if (cat.equalsIgnoreCase(out)) { categoryCb.setValue(cat); break; }
+                        aiCatBtn.setText("✨ Auto-categorize");
+                        aiCatBtn.setDisable(false);
+                    });
+                } catch (Exception ex) {
+                    javafx.application.Platform.runLater(() -> {
+                        aiCatBtn.setText("✨ Auto-categorize");
+                        aiCatBtn.setDisable(false);
+                        showError(ex);
+                    });
+                }
+            }, "ai-expense-cat").start();
+        });
         Button addBtn = new Button("Add");
         addBtn.getStyleClass().addAll("btn", "btn-primary");
         addBtn.setOnAction(e -> {
@@ -96,7 +122,7 @@ public class ExpensesView {
                 load();
             } catch (Exception ex) { showError(ex); }
         });
-        amountRow.getChildren().addAll(amountBox, addBtn);
+        amountRow.getChildren().addAll(amountBox, aiCatBtn, addBtn);
         form.getChildren().add(amountRow);
         root.getChildren().add(form);
 
