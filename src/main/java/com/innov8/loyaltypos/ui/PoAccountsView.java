@@ -306,10 +306,27 @@ public class PoAccountsView {
                     err.setVisible(true); err.setManaged(true);
                     return;
                 }
+                String newStatus = statusCb.getValue();
+                // Guard: cannot mark closed unless the account is fully paid back
+                if ("closed".equals(newStatus) && selected.balanceUsed > 0.009) {
+                    err.setText("Cannot close — outstanding balance " + sym + Money.fmt(selected.balanceUsed) + " must be paid first.");
+                    err.setVisible(true); err.setManaged(true);
+                    return;
+                }
+                // Guard: cannot mark expired unless expiry date is in the past
+                if ("expired".equals(newStatus)) {
+                    java.time.LocalDate exp = dp.getValue();
+                    if (exp == null || !exp.isBefore(java.time.LocalDate.now())) {
+                        err.setText("Cannot mark expired — expiry date must be in the past. Current: "
+                                + (exp == null ? "(none)" : exp));
+                        err.setVisible(true); err.setManaged(true);
+                        return;
+                    }
+                }
                 selected.referenceNo = refTf.getText();
                 selected.creditLimit = limit;
                 selected.expiryDate = dp.getValue() == null ? null : dp.getValue().toString();
-                selected.status = statusCb.getValue();
+                selected.status = newStatus;
                 PoService.update(selected);
                 modal.close();
                 load();

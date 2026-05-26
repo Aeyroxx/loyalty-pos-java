@@ -86,28 +86,27 @@ public class LoginView {
         // Layer 2: subtle grid texture (40px squares, 2.5% opacity)
         root.getChildren().add(buildGridTexture());
 
-        // Layer 3: scrollable, responsive content. When the window shrinks below the
-        // branding+pin-card width, content scrolls/stacks instead of being clipped.
+        // Layer 3: branding LEFT, PIN RIGHT (matches the original React design).
+        // HBox + ScrollPane: side-by-side stays stable, vertical scroll on small windows.
         javafx.scene.control.ScrollPane scroller = new javafx.scene.control.ScrollPane();
         scroller.setFitToWidth(true);
-        scroller.setFitToHeight(true);
         scroller.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
         scroller.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
         scroller.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
-        javafx.scene.layout.FlowPane content = new javafx.scene.layout.FlowPane();
-        content.setAlignment(Pos.CENTER);
-        content.setHgap(60);
-        content.setVgap(40);
-        content.setPadding(new Insets(40, 40, 40, 40));
-        content.setRowValignment(javafx.geometry.VPos.CENTER);
-
         VBox left = buildBranding();
         StackPane right = buildPinCardWithGlow();
+        left.setMinWidth(420);
         left.setPrefWidth(500);
         left.setMaxWidth(560);
+        right.setMinWidth(420);
 
-        content.getChildren().addAll(left, right);
+        HBox content = new HBox(60, left, right);
+        content.setAlignment(Pos.CENTER);
+        content.setPadding(new Insets(40, 40, 40, 40));
+        HBox.setHgrow(left, Priority.SOMETIMES);
+        HBox.setHgrow(right, Priority.SOMETIMES);
+
         scroller.setContent(content);
 
         root.getChildren().add(scroller);
@@ -208,16 +207,42 @@ public class LoginView {
     // Left column: branding
     // ──────────────────────────────────────────────────────────────────────
     private VBox buildBranding() {
-        VBox box = new VBox(28);
+        VBox box = new VBox(22);
         box.setAlignment(Pos.CENTER_LEFT);
-        box.setMaxWidth(520);
+        box.setMaxWidth(560);
 
+        box.getChildren().add(buildLogoMark());
         box.getChildren().add(buildBadge());
         box.getChildren().add(buildTitle());
         box.getChildren().add(buildDivider());
         box.getChildren().add(buildMarquee());
         box.getChildren().add(buildStatusPills());
         return box;
+    }
+
+    /** Logo mark — tries to load /com/innov8/loyaltypos/img/logo.png; falls back to an amber square. */
+    private javafx.scene.Node buildLogoMark() {
+        try {
+            var url = LoginView.class.getResource("/com/innov8/loyaltypos/img/logo.png");
+            if (url != null) {
+                javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(new javafx.scene.image.Image(url.toExternalForm()));
+                iv.setFitHeight(72);
+                iv.setPreserveRatio(true);
+                iv.setSmooth(true);
+                return iv;
+            }
+        } catch (Exception ignore) {}
+        // Fallback: stylized monogram "LP" inside an amber rounded square
+        StackPane mark = new StackPane();
+        mark.setPrefSize(72, 72);
+        mark.setMinSize(72, 72);
+        mark.setMaxSize(72, 72);
+        mark.setBackground(new Background(new BackgroundFill(ACCENT, new CornerRadii(14), Insets.EMPTY)));
+        mark.setEffect(new javafx.scene.effect.DropShadow(18, Color.web("#d4690a", 0.55)));
+        Label lp = new Label("LP");
+        lp.setStyle("-fx-text-fill: white; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 32; -fx-font-weight: 800; -fx-letter-spacing: 0.04em;");
+        mark.getChildren().add(lp);
+        return mark;
     }
 
     private HBox buildBadge() {

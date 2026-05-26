@@ -103,16 +103,34 @@ public class CustomersView {
 
     private void openForm(Customer editing) {
         Customer form = editing != null ? editing : new Customer();
-        VBox content = new VBox(16);
-        GridPane grid = new GridPane();
-        grid.setHgap(24); grid.setVgap(16);
-        TextField nameTf = grid(grid, 0, "Name", form.name);
-        TextField tinTf = grid(grid, 1, "TIN", form.tin);
-        TextField phoneTf = grid(grid, 2, "Phone", form.phone);
-        TextField creditTf = grid(grid, 3, "Credit Limit", form.creditLimit > 0 ? String.valueOf(form.creditLimit) : "");
-        content.getChildren().add(grid);
-        TextField addressTf = wideField(content, "Address", form.address);
-        TextField notesTf = wideField(content, "Notes", form.notes);
+        VBox content = new VBox(14);
+
+        ProductsView.Field nameF = ProductsView.field(content, "Name", form.name);
+        ProductsView.Field tinF = ProductsView.field(content, "TIN (12 digits, optional)", form.tin);
+        ProductsView.Field phoneF = ProductsView.field(content, "Phone (11 digits, e.g. 09171234567)", form.phone);
+        ProductsView.Field creditF = ProductsView.field(content, "Credit Limit (₱)", form.creditLimit > 0 ? String.valueOf(form.creditLimit) : "");
+
+        // Optional credit-limit expiration date — drives PO expiry sync when present
+        Label expL = new Label("CREDIT EXPIRATION (OPTIONAL)"); expL.getStyleClass().add("field-label");
+        javafx.scene.control.DatePicker expDp = new javafx.scene.control.DatePicker();
+        expDp.setPromptText("MM/DD/YY");
+        expDp.setMaxWidth(Double.MAX_VALUE);
+        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("MM/dd/yy");
+        expDp.setConverter(new javafx.util.StringConverter<>() {
+            @Override public String toString(java.time.LocalDate d) { return d == null ? "" : fmt.format(d); }
+            @Override public java.time.LocalDate fromString(String s) {
+                if (s == null || s.trim().isEmpty()) return null;
+                try { return java.time.LocalDate.parse(s.trim(), fmt); } catch (Exception e) { return null; }
+            }
+        });
+        Label expErr = new Label();
+        expErr.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 11; -fx-padding: 2 0 0 0;");
+        expErr.setVisible(false); expErr.setManaged(false);
+        VBox expBox = new VBox(4, expL, expDp, expErr);
+        content.getChildren().add(expBox);
+
+        ProductsView.Field addressF = ProductsView.field(content, "Address", form.address == null ? "" : form.address);
+        ProductsView.Field notesF = ProductsView.field(content, "Notes", form.notes == null ? "" : form.notes);
 
         HBox btns = new HBox(10);
         btns.setAlignment(Pos.CENTER_RIGHT);
@@ -125,35 +143,70 @@ public class CustomersView {
         Modal modal = new Modal(root.getScene().getWindow(), editing == null ? "Add Customer" : "Edit Customer", content, true);
         cancel.setOnAction(e -> modal.close());
         save.setOnAction(e -> {
+            nameF.clearError(); tinF.clearError(); phoneF.clearError();
+            creditF.clearError(); addressF.clearError(); notesF.clearError();
+            expErr.setVisible(false); expErr.setManaged(false);
+
+            String nameVal = nameF.tf.getText() == null ? "" : nameF.tf.getText().trim();
+            String tinVal = tinF.tf.getText() == null ? "" : tinF.tf.getText().trim();
+            String phoneVal = phoneF.tf.getText() == null ? "" : phoneF.tf.getText().trim();
+            String creditStr = creditF.tf.getText() == null ? "" : creditF.tf.getText().trim();
+            String tinDigits = tinVal.replaceAll("\\D", "");
+            String phoneDigits = phoneVal.replaceAll("\\D", "");
+            boolean ok = true;
+
+            if (nameVal.isEmpty()) { nameF.setError("Customer name is required."); ok = false; }
+
+            if (!phoneVal.isEmpty() && phoneDigits.length() != 11) {
+                phoneF.setError("Phone must be 11 digits (e.g. 09171234567). You entered " + phoneDigits.length() + ".");
+                ok = false;
+            }
+            if (!tinVal.isEmpty() && tinDigits.length() != 12) {
+                tinF.setError("TIN must be 12 digits. You entered " + tinDigits.length() + ".");
+                ok = false;
+            }
+
+            double credit = 0;
+            if (!creditStr.isEmpty()) {
+                credit = ProductsView.parseD(creditStr);
+                if (credit < 0) {
+                    creditF.setError("Credit limit cannot be negative.");
+                    ok = false;
+                }
+            }
+
+            if (!ok) return;
+
+            form.name = nameVal;
+            form.tin = tinVal;
+            form.phone = phoneVal;
+            form.address = addressF.tf.getText();
+            form.notes = notesF.tf.getText();
+            double oldCredit = form.creditLimit;
+            form.creditLimit = credit;
+
             try {
-                form.name = nameTf.getText().trim();
-                form.tin = tinTf.getText() == null ? "" : tinTf.getText().trim();
-                form.phone = phoneTf.getText() == null ? "" : phoneTf.getText().trim();
-                form.address = addressTf.getText();
-                form.notes = notesTf.getText();
-                form.creditLimit = ProductsView.parseD(creditTf.getText());
-                if (form.name.isEmpty()) {
-                    showError(new Exception("Name is required."));
-                    return;
-                }
-                // 12-digit numeric validation: ignore spaces / dashes when counting
-                String phoneDigits = form.phone.replaceAll("\\D", "");
-                String tinDigits = form.tin.replaceAll("\\D", "");
-                if (!form.phone.isEmpty() && phoneDigits.length() != 12) {
-                    showError(new Exception("Phone must be exactly 12 digits (e.g. 639XXXXXXXXX). You entered " + phoneDigits.length() + "."));
-                    phoneTf.requestFocus();
-                    return;
-                }
-                if (!form.tin.isEmpty() && tinDigits.length() != 12) {
-                    showError(new Exception("TIN must be exactly 12 digits. You entered " + tinDigits.length() + "."));
-                    tinTf.requestFocus();
-                    return;
-                }
                 if (editing == null) CustomerService.create(form);
                 else CustomerService.update(form);
+
+                // Sync the new credit limit + optional expiration to open PO accounts owned by this customer.
+                if (editing != null && Math.abs(oldCredit - credit) > 0.0001 || expDp.getValue() != null) {
+                    try {
+                        for (com.innov8.loyaltypos.model.PoAccount po : com.innov8.loyaltypos.service.PoService.openByCustomer(form.id)) {
+                            po.creditLimit = credit;
+                            if (expDp.getValue() != null) po.expiryDate = expDp.getValue().toString();
+                            com.innov8.loyaltypos.service.PoService.update(po);
+                        }
+                    } catch (Exception syncEx) {
+                        // Non-fatal: surface as a soft warning under credit field
+                        creditF.setError("Saved customer, but PO sync failed: " + syncEx.getMessage());
+                    }
+                }
                 modal.close();
                 load();
-            } catch (Exception ex) { showError(ex); }
+            } catch (Exception ex) {
+                nameF.setError(ex.getMessage() == null ? "Save failed." : ex.getMessage());
+            }
         });
         modal.show();
     }

@@ -65,9 +65,6 @@ public class SettingsView {
                     {"vat_enabled", "VAT Enabled", "boolean"},
                     {"vat_rate", "VAT Rate (%)", "number"}
             }),
-            new Section("Appearance", new String[][]{
-                    {"theme", "Theme (dark / light)", "text"}
-            }),
             new Section("Printers", new String[][]{
                     {"thermal_printer", "Thermal Printer Name", "text"},
                     {"normal_printer", "Normal (A4) Printer Name", "text"},
@@ -96,6 +93,7 @@ public class SettingsView {
         Label title = new Label("SETTINGS"); title.getStyleClass().add("page-title");
         root.getChildren().add(title);
 
+        renderAppearance();
         for (Section s : SECTIONS) renderSection(s);
 
         // Quick "Test AI connection" button — round-trips a tiny prompt to Gemini.
@@ -163,6 +161,46 @@ public class SettingsView {
         });
         row.getChildren().add(openFolder);
         root.getChildren().addAll(pathLbl, row);
+    }
+
+    /** Custom Appearance section: a toggle button that flips theme + an uneditable status label. */
+    private void renderAppearance() {
+        Label title = new Label("APPEARANCE");
+        title.getStyleClass().add("section-title");
+        root.getChildren().add(title);
+
+        HBox row = new HBox(16);
+        row.setAlignment(Pos.CENTER_LEFT);
+
+        Label themeLbl = new Label("CURRENT THEME"); themeLbl.getStyleClass().add("field-label");
+        Label themeVal = new Label();
+        themeVal.setStyle("-fx-text-fill: -accent; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 14; -fx-font-weight: 700;");
+
+        Button toggle = new Button();
+        toggle.getStyleClass().addAll("btn", "btn-primary");
+        toggle.setStyle("-fx-padding: 8 20; -fx-font-size: 13;");
+
+        Runnable refresh = () -> {
+            String t = App.ctx.theme;
+            themeVal.setText("● " + (t == null ? "DARK" : t.toUpperCase()));
+            toggle.setText("Switch to " + ("light".equalsIgnoreCase(t) ? "Dark" : "Light"));
+        };
+        refresh.run();
+
+        toggle.setOnAction(e -> {
+            String next = "light".equalsIgnoreCase(App.ctx.theme) ? "dark" : "light";
+            App.ctx.theme = next;
+            SettingsService.set("theme", next);
+            App.ctx.settings = SettingsService.getAll();
+            java.util.prefs.Preferences.userNodeForPackage(com.innov8.loyaltypos.AppContext.class)
+                    .put("pos_theme", next);
+            if (toggle.getScene() != null) App.applyTheme(toggle.getScene());
+            refresh.run();
+        });
+
+        VBox left = new VBox(4, themeLbl, themeVal);
+        row.getChildren().addAll(left, toggle);
+        root.getChildren().add(row);
     }
 
     private void renderSection(Section section) {

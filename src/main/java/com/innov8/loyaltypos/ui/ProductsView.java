@@ -115,10 +115,11 @@ public class ProductsView {
 
     private void openForm(Product editing) {
         Product form = editing != null ? editing : new Product();
-        VBox content = new VBox(16);
-        TextField codeTf = labeledField(content, "Item Code (unique)", form.itemCode == null ? "" : form.itemCode);
-        TextField nameTf = labeledField(content, "Name", form.name);
-        TextField descTf = labeledField(content, "Description / Grade / Texture", form.description == null ? "" : form.description);
+        VBox content = new VBox(14);
+
+        Field code = field(content, "Item Code (unique, e.g. ITM-001)", form.itemCode == null ? "" : form.itemCode);
+        Field name = field(content, "Name", form.name);
+        Field desc = field(content, "Description / Grade / Texture (max 255 chars)", form.description == null ? "" : form.description);
 
         // AI helper: generate a one-line product description from code + name + unit
         Button aiDescBtn = new Button("✨ Suggest description");
@@ -128,8 +129,8 @@ public class ProductsView {
         aiRow.setAlignment(Pos.CENTER_LEFT);
         content.getChildren().add(aiRow);
 
-        TextField priceTf = labeledField(content, "Price per Unit", form.pricePerUnit > 0 ? String.valueOf(form.pricePerUnit) : "");
-        TextField stockTf = labeledField(content, "Stock Quantity", form.stockQty > 0 ? String.valueOf(form.stockQty) : "");
+        Field price = field(content, "Price per Unit", form.pricePerUnit > 0 ? String.valueOf(form.pricePerUnit) : "");
+        Field stock = field(content, "Quantity", form.stockQty > 0 ? String.valueOf((long) form.stockQty) : "");
 
         Label unitLbl = new Label("UNIT"); unitLbl.getStyleClass().add("field-label");
         ComboBox<String> unitCb = new ComboBox<>(FXCollections.observableArrayList(UNITS));
@@ -149,20 +150,21 @@ public class ProductsView {
         content.getChildren().add(btns);
 
         aiDescBtn.setOnAction(e -> {
-            String code = codeTf.getText() == null ? "" : codeTf.getText().trim();
-            String name = nameTf.getText() == null ? "" : nameTf.getText().trim();
+            String c = code.tf.getText() == null ? "" : code.tf.getText().trim();
+            String n = name.tf.getText() == null ? "" : name.tf.getText().trim();
             String unit = unitCb.getValue();
-            if (code.isEmpty() || name.isEmpty()) {
-                showError(new Exception("Fill in item code and name first."));
+            if (c.isEmpty() || n.isEmpty()) {
+                code.setError(c.isEmpty() ? "Required first." : null);
+                name.setError(n.isEmpty() ? "Required first." : null);
                 return;
             }
             aiDescBtn.setText("✨ Asking AI…");
             aiDescBtn.setDisable(true);
             new Thread(() -> {
                 try {
-                    String out = com.innov8.loyaltypos.service.AIService.suggestProductDescription(code, name, unit);
+                    String out = com.innov8.loyaltypos.service.AIService.suggestProductDescription(c, n, unit);
                     javafx.application.Platform.runLater(() -> {
-                        descTf.setText(out);
+                        desc.tf.setText(out);
                         aiDescBtn.setText("✨ Suggest description");
                         aiDescBtn.setDisable(false);
                     });
@@ -170,7 +172,7 @@ public class ProductsView {
                     javafx.application.Platform.runLater(() -> {
                         aiDescBtn.setText("✨ Suggest description");
                         aiDescBtn.setDisable(false);
-                        showError(ex);
+                        desc.setError("AI: " + ex.getMessage());
                     });
                 }
             }, "ai-prod-desc").start();
@@ -179,22 +181,102 @@ public class ProductsView {
         Modal modal = new Modal(root.getScene().getWindow(), editing == null ? "Add Product" : "Edit Product", content);
         cancel.setOnAction(e -> modal.close());
         save.setOnAction(e -> {
+            // clear all inline errors first
+            code.clearError(); name.clearError(); desc.clearError(); price.clearError(); stock.clearError();
+
+            String cVal = code.tf.getText() == null ? "" : code.tf.getText().trim().toUpperCase();
+            String nVal = name.tf.getText() == null ? "" : name.tf.getText().trim();
+            String dVal = desc.tf.getText() == null ? "" : desc.tf.getText().trim();
+            String pStr = price.tf.getText() == null ? "" : price.tf.getText().trim();
+            String sStr = stock.tf.getText() == null ? "" : stock.tf.getText().trim();
+            boolean ok = true;
+
+            // Item code: required, format PREFIX-NUMBER (e.g. ITM-001, GRAVEL-2)
+            if (cVal.isEmpty()) { code.setError("Item code is required."); ok = false; }
+            else if (!cVal.matches("^[A-Z0-9]{2,}-[A-Z0-9]+$")) {
+                code.setError("Format: prefix-suffix, e.g. ITM-001 or GRAVEL-2.");
+                ok = false;
+            }
+
+            // Name: required, not all special characters
+            if (nVal.isEmpty()) { name.setError("Product name is required."); ok = false; }
+            else if (!nVal.matches(".*[A-Za-z0-9].*")) {
+                name.setError("Name must contain letters or numbers, not only symbols.");
+                ok = false;
+            }
+
+            // Description: 255 char limit
+            if (dVal.length() > 255) {
+                desc.setError("Description is " + dVal.length() + "/255 characters. Trim it down.");
+                ok = false;
+            }
+
+            // Price: positive number
+            if (pStr.isEmpty()) { price.setError("Price is required."); ok = false; }
+            else {
+                double pVal = parseD(pStr);
+                if (pVal <= 0) { price.setError("Price must be greater than 0."); ok = false; }
+                form.pricePerUnit = pVal;
+            }
+
+            // Stock: whole number >= 0
+            if (sStr.isEmpty()) { stock.setError("Quantity is required."); ok = false; }
+            else if (!sStr.matches("^\\d+$")) {
+                stock.setError("Quantity must be a whole number (no decimals, no negatives).");
+                ok = false;
+            } else {
+                form.stockQty = Long.parseLong(sStr);
+            }
+
+            if (!ok) return;
+
+            form.itemCode = cVal;
+            form.name = nVal;
+            form.description = dVal;
+            form.unit = unitCb.getValue();
+
             try {
-                form.itemCode = codeTf.getText().trim();
-                form.name = nameTf.getText().trim();
-                form.description = descTf.getText().trim();
-                form.unit = unitCb.getValue();
-                form.pricePerUnit = parseD(priceTf.getText());
-                form.stockQty = parseD(stockTf.getText());
-                if (form.itemCode.isEmpty()) { showError(new Exception("Item code is required (distinct codes per grade — e.g. GRAVEL-1, GRAVEL-2).")); return; }
-                if (form.name.isEmpty() || form.pricePerUnit <= 0) return;
                 if (editing == null) ProductService.create(form);
                 else ProductService.update(form);
                 modal.close();
                 load();
-            } catch (Exception ex) { showError(ex); }
+            } catch (Exception ex) {
+                String msg = ex.getMessage() == null ? "Save failed." : ex.getMessage();
+                if (msg.toLowerCase().contains("item code")) code.setError(msg);
+                else name.setError(msg);
+            }
         });
         modal.show();
+    }
+
+    /** Field bundle: label + textfield + below-line error label. */
+    static class Field {
+        final TextField tf;
+        final Label err;
+        Field(TextField tf, Label err) { this.tf = tf; this.err = err; }
+        void setError(String msg) {
+            if (msg == null || msg.isEmpty()) { clearError(); return; }
+            err.setText(msg);
+            err.setVisible(true); err.setManaged(true);
+            tf.setStyle("-fx-border-color: transparent transparent #ef4444 transparent;");
+        }
+        void clearError() {
+            err.setVisible(false); err.setManaged(false);
+            tf.setStyle("");
+        }
+    }
+
+    static Field field(VBox parent, String label, String value) {
+        Label l = new Label(label.toUpperCase()); l.getStyleClass().add("field-label");
+        TextField tf = new TextField(value == null ? "" : value);
+        tf.getStyleClass().add("field-input");
+        Label err = new Label();
+        err.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 11; -fx-padding: 2 0 0 0;");
+        err.setVisible(false); err.setManaged(false);
+        err.setWrapText(true);
+        VBox box = new VBox(4, l, tf, err);
+        parent.getChildren().add(box);
+        return new Field(tf, err);
     }
 
     /** Parse a user-typed number, stripping commas/currency so "₱1,500.00" or "1,500" works. */

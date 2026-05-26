@@ -91,7 +91,12 @@ public class PosView {
                 name.setStyle("-fx-text-fill: -ink; -fx-font-weight: 600; -fx-font-size: 13;");
                 Label info = new Label(sym + Money.fmt(p.pricePerUnit) + " / " + p.unit);
                 info.setStyle("-fx-text-fill: -muted; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 11;");
-                box.getChildren().addAll(name, info);
+                // Surface current stock — payment refuses when stock_qty == 0
+                long onHand = (long) p.stockQty;
+                Label stockLbl = new Label("Stock: " + onHand);
+                stockLbl.setStyle("-fx-text-fill: " + (onHand <= 0 ? "#ef4444" : "-muted")
+                        + "; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 10;");
+                box.getChildren().addAll(name, info, stockLbl);
                 setGraphic(box);
                 setStyle("-fx-background-color: transparent; -fx-padding: 8 16; -fx-border-color: transparent transparent -overlay-subtle transparent;");
             }

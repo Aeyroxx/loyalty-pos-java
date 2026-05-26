@@ -306,9 +306,7 @@ public class ReportsView {
                 colS("UNIT", r -> r.unit == null ? "—" : r.unit),
                 colS("QTY SOLD", r -> Money.fmt(r.quantitySold)),
                 colS("REVENUE", r -> sym + Money.fmt(r.revenue)),
-                colS("# SALES", r -> String.valueOf(r.transactionCount)),
-                colS("FIRST SALE", r -> r.firstSale == null ? "—" : r.firstSale),
-                colS("LAST SALE", r -> r.lastSale == null ? "—" : r.lastSale)
+                colS("# SALES", r -> String.valueOf(r.transactionCount))
         );
         content.getChildren().add(table);
 

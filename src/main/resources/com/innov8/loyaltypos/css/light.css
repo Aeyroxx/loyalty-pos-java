@@ -56,11 +56,27 @@
     -fx-text-fill: #ffffff;
 }
 
-/* Modal */
+/* Modal — soft shadow on light background, not the heavy dark drop-shadow from app.css */
 .modal-overlay { -fx-background-color: rgba(0,0,0,0.45); }
 .modal-card {
     -fx-background-color: #ffffff;
     -fx-border-color: rgba(0,0,0,0.12);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 30, 0.15, 0, 8);
+}
+
+/* Pin card glassmorphism: kill the heavy dark drop-shadow for light theme */
+.theme-light .login-card {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.10), 24, 0.10, 0, 6);
+}
+
+/* Inputs / combos shouldn't have a dark inner shadow ring in light mode */
+.theme-light .text-field,
+.theme-light .text-area,
+.theme-light .password-field,
+.theme-light .combo-box,
+.theme-light .date-picker {
+    -fx-effect: null;
+    -fx-background-color: #ffffff;
 }
 .modal-header {
     -fx-background-color: rgba(212,105,10,0.12);
