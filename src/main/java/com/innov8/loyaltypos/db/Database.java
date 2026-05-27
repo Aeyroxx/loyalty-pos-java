@@ -96,6 +96,24 @@ public final class Database {
                 WHERE item_code IS NULL AND product_id IS NOT NULL""");
         } catch (SQLException ignore) {}
 
+        // Suppliers table — idempotent migration for legacy DBs
+        try (Statement st = conn.createStatement()) {
+            st.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS suppliers (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  name TEXT NOT NULL,
+                  contact_person TEXT,
+                  phone TEXT,
+                  email TEXT,
+                  address TEXT,
+                  notes TEXT,
+                  is_active INTEGER NOT NULL DEFAULT 1
+                )""");
+        } catch (SQLException ignore) {}
+        try (Statement st = conn.createStatement()) {
+            st.execute("ALTER TABLE products ADD COLUMN supplier_id INTEGER REFERENCES suppliers(id)");
+        } catch (SQLException ignore) {}
+
         // Migration: ensure 'voided' is a valid payment_status. Rebuild table if old CHECK constraint omits it.
         // Wrapped in an explicit transaction so a crash mid-rebuild can't leave transactions_new orphaned.
         try (Statement st = conn.createStatement();
@@ -177,6 +195,17 @@ public final class Database {
                   is_active INTEGER NOT NULL DEFAULT 1
                 )""");
             st.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS suppliers (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  name TEXT NOT NULL,
+                  contact_person TEXT,
+                  phone TEXT,
+                  email TEXT,
+                  address TEXT,
+                  notes TEXT,
+                  is_active INTEGER NOT NULL DEFAULT 1
+                )""");
+            st.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS products (
                   id INTEGER PRIMARY KEY AUTOINCREMENT,
                   item_code TEXT,
@@ -185,6 +214,7 @@ public final class Database {
                   unit TEXT NOT NULL DEFAULT 'm³',
                   price_per_unit REAL NOT NULL DEFAULT 0,
                   stock_qty REAL NOT NULL DEFAULT 0,
+                  supplier_id INTEGER REFERENCES suppliers(id),
                   is_active INTEGER NOT NULL DEFAULT 1
                 )""");
             // NOTE: idx_products_item_code is created in applyMigrations() AFTER the

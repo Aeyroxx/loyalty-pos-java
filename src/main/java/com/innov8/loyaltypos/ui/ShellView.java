@@ -19,6 +19,7 @@ public class ShellView {
         root.getStyleClass().add("bg-paper");
         pages.put("pos",          () -> new PosView().getRoot());
         pages.put("products",     () -> new ProductsView().getRoot());
+        pages.put("suppliers",    () -> new SuppliersView().getRoot());
         pages.put("customers",    () -> new CustomersView().getRoot());
         pages.put("po",           () -> new PoAccountsView().getRoot());
         pages.put("transactions", () -> new TransactionsView().getRoot());

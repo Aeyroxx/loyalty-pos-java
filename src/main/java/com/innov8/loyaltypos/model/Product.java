@@ -10,5 +10,9 @@ public class Product {
     public String unit = "m³";
     public double pricePerUnit;
     public double stockQty;
+    /** Optional foreign key to suppliers.id; null when unsourced. */
+    public Integer supplierId;
+    /** Convenience: supplier name joined from the suppliers table on list/get. */
+    public String supplierName;
     public boolean isActive = true;
 }

@@ -32,6 +32,7 @@ public class Sidebar extends VBox {
     private static final List<NavItem> NAV_ITEMS = List.of(
             new NavItem("POS", "pos", "⊕", false),
             new NavItem("Products", "products", "◈", true),
+            new NavItem("Suppliers", "suppliers", "⌂", true),
             new NavItem("Customers", "customers", "◎", false),
             new NavItem("PO Accounts", "po", "◇", false),
             new NavItem("Transactions", "transactions", "≡", false),

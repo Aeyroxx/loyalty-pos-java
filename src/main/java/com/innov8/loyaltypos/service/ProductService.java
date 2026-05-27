@@ -14,7 +14,9 @@ public final class ProductService {
     public static List<Product> list() {
         List<Product> out = new ArrayList<>();
         try (PreparedStatement ps = Database.get().prepareStatement(
-                "SELECT * FROM products WHERE is_active=1 ORDER BY item_code, name")) {
+                "SELECT p.*, s.name AS supplier_name FROM products p " +
+                "LEFT JOIN suppliers s ON s.id = p.supplier_id " +
+                "WHERE p.is_active=1 ORDER BY p.item_code, p.name")) {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) out.add(map(rs));
         } catch (Exception e) { throw new RuntimeException(e); }
@@ -34,7 +36,7 @@ public final class ProductService {
     public static int create(Product p) {
         validate(p, 0);
         try (PreparedStatement ps = Database.get().prepareStatement(
-                "INSERT INTO products (item_code, name, description, unit, price_per_unit, stock_qty) VALUES (?,?,?,?,?,?)",
+                "INSERT INTO products (item_code, name, description, unit, price_per_unit, stock_qty, supplier_id) VALUES (?,?,?,?,?,?,?)",
                 java.sql.Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, nz(p.itemCode));
             ps.setString(2, p.name);
@@ -42,6 +44,7 @@ public final class ProductService {
             ps.setString(4, p.unit);
             ps.setDouble(5, p.pricePerUnit);
             ps.setDouble(6, p.stockQty);
+            if (p.supplierId == null) ps.setNull(7, java.sql.Types.INTEGER); else ps.setInt(7, p.supplierId);
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
             int id = rs.next() ? rs.getInt(1) : -1;
@@ -54,14 +57,15 @@ public final class ProductService {
     public static void update(Product p) {
         validate(p, p.id);
         try (PreparedStatement ps = Database.get().prepareStatement(
-                "UPDATE products SET item_code=?, name=?, description=?, unit=?, price_per_unit=?, stock_qty=? WHERE id=?")) {
+                "UPDATE products SET item_code=?, name=?, description=?, unit=?, price_per_unit=?, stock_qty=?, supplier_id=? WHERE id=?")) {
             ps.setString(1, nz(p.itemCode));
             ps.setString(2, p.name);
             ps.setString(3, nz(p.description));
             ps.setString(4, p.unit);
             ps.setDouble(5, p.pricePerUnit);
             ps.setDouble(6, p.stockQty);
-            ps.setInt(7, p.id);
+            if (p.supplierId == null) ps.setNull(7, java.sql.Types.INTEGER); else ps.setInt(7, p.supplierId);
+            ps.setInt(8, p.id);
             ps.executeUpdate();
             SyncService.queue("products", p.id, "update", p);
         } catch (Exception e) { throw new RuntimeException(translate(e)); }
@@ -84,6 +88,11 @@ public final class ProductService {
         p.unit = rs.getString("unit");
         p.pricePerUnit = rs.getDouble("price_per_unit");
         p.stockQty = rs.getDouble("stock_qty");
+        try {
+            int sid = rs.getInt("supplier_id");
+            p.supplierId = rs.wasNull() ? null : sid;
+        } catch (Exception ignore) {}
+        try { p.supplierName = rs.getString("supplier_name"); } catch (Exception ignore) {}
         try { p.isActive = rs.getInt("is_active") == 1; } catch (Exception ignore) {}
         return p;
     }
