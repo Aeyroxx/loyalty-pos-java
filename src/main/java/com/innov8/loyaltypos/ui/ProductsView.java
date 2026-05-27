@@ -231,7 +231,8 @@ public class ProductsView {
             if (!ok) return;
 
             form.itemCode = cVal;
-            form.name = nVal;
+            // Auto Title Case the name on save (each whitespace-separated word capitalised).
+            form.name = titleCase(nVal);
             form.description = dVal;
             form.unit = unitCb.getValue();
 
@@ -277,6 +278,20 @@ public class ProductsView {
         VBox box = new VBox(4, l, tf, err);
         parent.getChildren().add(box);
         return new Field(tf, err);
+    }
+
+    /** Title Case helper: "ALL-PURPOSE sand" → "All-Purpose Sand". */
+    static String titleCase(String s) {
+        if (s == null || s.isEmpty()) return s;
+        StringBuilder out = new StringBuilder(s.length());
+        boolean nextUpper = true;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isWhitespace(c) || c == '-' || c == '/') { nextUpper = true; out.append(c); }
+            else if (nextUpper) { out.append(Character.toUpperCase(c)); nextUpper = false; }
+            else out.append(Character.toLowerCase(c));
+        }
+        return out.toString();
     }
 
     /** Parse a user-typed number, stripping commas/currency so "₱1,500.00" or "1,500" works. */

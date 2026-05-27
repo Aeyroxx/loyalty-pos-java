@@ -94,12 +94,21 @@ public final class ProductService {
         if (p.itemCode == null || p.itemCode.trim().isEmpty())
             throw new RuntimeException("Item code is required (per professor revision: every product must have a distinct code).");
         p.itemCode = p.itemCode.trim();
+        p.name = p.name.trim();
         try (PreparedStatement ps = Database.get().prepareStatement(
                 "SELECT id FROM products WHERE item_code = ? COLLATE NOCASE AND id <> ?")) {
             ps.setString(1, p.itemCode);
             ps.setInt(2, existingId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) throw new RuntimeException("Item code '" + p.itemCode + "' already exists. Item codes must be unique.");
+        } catch (RuntimeException re) { throw re; } catch (Exception e) { throw new RuntimeException(e); }
+        // Name uniqueness — same active product can't share a name with another.
+        try (PreparedStatement ps = Database.get().prepareStatement(
+                "SELECT id FROM products WHERE name = ? COLLATE NOCASE AND is_active = 1 AND id <> ?")) {
+            ps.setString(1, p.name);
+            ps.setInt(2, existingId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) throw new RuntimeException("Product name '" + p.name + "' already exists. Product names must be unique.");
         } catch (RuntimeException re) { throw re; } catch (Exception e) { throw new RuntimeException(e); }
     }
 
