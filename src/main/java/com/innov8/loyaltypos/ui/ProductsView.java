@@ -74,8 +74,8 @@ public class ProductsView {
         TableColumn<Product, String> price = new TableColumn<>("PRICE / UNIT");
         price.setCellValueFactory(c -> new SimpleStringProperty(currencySym + Money.fmt(c.getValue().pricePerUnit)));
 
-        TableColumn<Product, String> stock = new TableColumn<>("STOCK");
-        stock.setCellValueFactory(c -> new SimpleStringProperty(Money.fmt(c.getValue().stockQty) + " " + c.getValue().unit));
+        TableColumn<Product, String> stock = new TableColumn<>("QUANTITY");
+        stock.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf((long) c.getValue().stockQty) + " " + c.getValue().unit));
 
         TableColumn<Product, Product> actions = new TableColumn<>("");
         actions.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue()));
