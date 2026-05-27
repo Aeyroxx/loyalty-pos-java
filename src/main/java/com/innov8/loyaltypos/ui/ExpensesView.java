@@ -108,10 +108,30 @@ public class ExpensesView {
         });
         Button addBtn = new Button("Add");
         addBtn.getStyleClass().addAll("btn", "btn-primary");
+        Label inlineErr = new Label();
+        inlineErr.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 11; -fx-padding: 4 0 0 0;");
+        inlineErr.setVisible(false); inlineErr.setManaged(false);
+        inlineErr.setWrapText(true);
         addBtn.setOnAction(e -> {
+            inlineErr.setVisible(false); inlineErr.setManaged(false);
+            String amtStr = amountTf.getText() == null ? "" : amountTf.getText().trim();
+            if (amtStr.isEmpty()) {
+                inlineErr.setText("Amount is required.");
+                inlineErr.setVisible(true); inlineErr.setManaged(true);
+                return;
+            }
+            double v = ProductsView.parseD(amtStr);
+            if (v <= 0) {
+                inlineErr.setText("Amount must be greater than 0.");
+                inlineErr.setVisible(true); inlineErr.setManaged(true);
+                return;
+            }
+            if (dateTf.getValue() == null) {
+                inlineErr.setText("Pick a date for the expense.");
+                inlineErr.setVisible(true); inlineErr.setManaged(true);
+                return;
+            }
             try {
-                double v = ProductsView.parseD(amountTf.getText());
-                if (v <= 0) return;
                 Expense ex = new Expense();
                 ex.date = dateTf.getValue().toString();
                 ex.category = categoryCb.getValue();
@@ -120,10 +140,14 @@ public class ExpensesView {
                 ExpenseService.create(ex);
                 amountTf.clear(); descTf.clear();
                 load();
-            } catch (Exception ex) { showError(ex); }
+            } catch (Exception ex) {
+                inlineErr.setText(ex.getMessage() == null ? "Save failed." : ex.getMessage());
+                inlineErr.setVisible(true); inlineErr.setManaged(true);
+            }
         });
         amountRow.getChildren().addAll(amountBox, aiCatBtn, addBtn);
         form.getChildren().add(amountRow);
+        form.getChildren().add(inlineErr);
         root.getChildren().add(form);
 
         // Filter
