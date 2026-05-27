@@ -175,13 +175,53 @@ public final class PosService {
         }
     }
 
+    /**
+     * Self-healing invoice generator. Combines the persisted counter with the
+     * highest existing invoice number for the current prefix+year, then takes
+     * MAX of (settings counter, db max + 1). This eliminates UNIQUE collisions
+     * caused by settings drift (manual edits, reseeds, or partial restores).
+     *
+     * Also retries on collision up to 5 times — defensive in case of races.
+     */
     private static String nextInvoiceNo(String date) throws java.sql.SQLException {
         String prefix = SettingsService.getString("invoice_prefix", "INV");
-        int counter = SettingsService.getInt("invoice_counter", 1);
         int year;
         try { year = Integer.parseInt(date.substring(0, 4)); } catch (Exception e) { year = java.time.Year.now().getValue(); }
-        String padded = String.format("%05d", counter);
-        SettingsService.set("invoice_counter", counter + 1);
-        return prefix + "-" + year + "-" + padded;
+        int counter = SettingsService.getInt("invoice_counter", 1);
+
+        // Floor the counter at (max existing numeric suffix + 1) for this prefix+year
+        int dbMax = 0;
+        String pattern = prefix + "-" + year + "-%";
+        try (PreparedStatement ps = Database.get().prepareStatement(
+                "SELECT invoice_no FROM transactions WHERE invoice_no LIKE ?")) {
+            ps.setString(1, pattern);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String n = rs.getString(1);
+                int dash = n.lastIndexOf('-');
+                if (dash > 0 && dash < n.length() - 1) {
+                    try { dbMax = Math.max(dbMax, Integer.parseInt(n.substring(dash + 1))); }
+                    catch (NumberFormatException ignore) {}
+                }
+            }
+        }
+        int next = Math.max(counter, dbMax + 1);
+
+        // Defensive: if somehow our chosen number already exists, walk forward
+        // until we find a free slot.
+        for (int attempt = 0; attempt < 5; attempt++) {
+            String candidate = prefix + "-" + year + "-" + String.format("%05d", next);
+            try (PreparedStatement ps = Database.get().prepareStatement(
+                    "SELECT 1 FROM transactions WHERE invoice_no=?")) {
+                ps.setString(1, candidate);
+                ResultSet rs = ps.executeQuery();
+                if (!rs.next()) {
+                    SettingsService.set("invoice_counter", next + 1);
+                    return candidate;
+                }
+            }
+            next++;
+        }
+        throw new java.sql.SQLException("Unable to find free invoice number after 5 attempts (last tried " + next + ")");
     }
 }
