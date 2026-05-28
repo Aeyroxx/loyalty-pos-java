@@ -60,22 +60,27 @@ public class ProductsView {
 
         TableColumn<Product, String> code = new TableColumn<>("ITEM CODE");
         code.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().itemCode == null ? "" : c.getValue().itemCode));
-        code.setPrefWidth(110);
+        code.setPrefWidth(120); code.setMinWidth(110);
 
         TableColumn<Product, String> name = new TableColumn<>("NAME");
         name.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().name));
+        name.setPrefWidth(180); name.setMinWidth(140);
 
         TableColumn<Product, String> desc = new TableColumn<>("DESCRIPTION / GRADE");
         desc.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().description == null ? "" : c.getValue().description));
+        desc.setPrefWidth(220); desc.setMinWidth(160);
 
         TableColumn<Product, String> unit = new TableColumn<>("UNIT");
         unit.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().unit));
+        unit.setPrefWidth(90); unit.setMinWidth(70);
 
         TableColumn<Product, String> price = new TableColumn<>("PRICE / UNIT");
         price.setCellValueFactory(c -> new SimpleStringProperty(currencySym + Money.fmt(c.getValue().pricePerUnit)));
+        price.setPrefWidth(130); price.setMinWidth(110);
 
         TableColumn<Product, String> stock = new TableColumn<>("QUANTITY");
         stock.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf((long) c.getValue().stockQty) + " " + c.getValue().unit));
+        stock.setPrefWidth(130); stock.setMinWidth(100);
 
         TableColumn<Product, Product> actions = new TableColumn<>("");
         actions.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue()));
@@ -262,10 +267,14 @@ public class ProductsView {
             form.supplierId = supplierCb.getValue() == null ? null : supplierCb.getValue().id;
 
             try {
-                if (editing == null) ProductService.create(form);
+                boolean isNew = editing == null;
+                if (isNew) ProductService.create(form);
                 else ProductService.update(form);
                 modal.close();
                 load();
+                new Modal(root.getScene().getWindow(),
+                        isNew ? "Product Added" : "Product Updated",
+                        new Label(form.name + (isNew ? " was added to inventory." : " was updated."))).show();
             } catch (Exception ex) {
                 String msg = ex.getMessage() == null ? "Save failed." : ex.getMessage();
                 if (msg.toLowerCase().contains("item code")) code.setError(msg);

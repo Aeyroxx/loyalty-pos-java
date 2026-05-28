@@ -111,7 +111,15 @@ public class Sidebar extends VBox {
         Button themeBtn = new Button((App.ctx.theme.equals("dark") ? "☀  LIGHT MODE" : "◑  DARK MODE"));
         themeBtn.setStyle("-fx-background-color: -overlay-subtle; -fx-border-color: -border; -fx-text-fill: #555; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 11; -fx-font-weight: 700; -fx-padding: 6 12; -fx-background-radius: 6; -fx-border-radius: 6;");
         themeBtn.setMaxWidth(Double.MAX_VALUE);
-        themeBtn.setOnAction(e -> { App.ctx.toggleTheme(); App.showShell(); });
+        themeBtn.setOnAction(e -> {
+            // Toggle in-place: apply CSS to the current scene without rebuilding the
+            // shell — staying on the current tab.
+            App.ctx.toggleTheme();
+            com.innov8.loyaltypos.service.SettingsService.set("theme", App.ctx.theme);
+            App.ctx.settings = com.innov8.loyaltypos.service.SettingsService.getAll();
+            themeBtn.setText(App.ctx.theme.equals("dark") ? "☀  LIGHT MODE" : "◑  DARK MODE");
+            if (getScene() != null) App.applyTheme(getScene());
+        });
         bottom.getChildren().add(themeBtn);
 
         Button devBtn = new Button(Database.isDevMode() ? "◉ EXIT DEV MODE" : "⟨/⟩ DEV MODE");

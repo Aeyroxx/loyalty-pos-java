@@ -266,23 +266,45 @@ public class PosView {
     }
 
     private javafx.scene.control.TableCell<TransactionItem, TransactionItem> editCell(boolean isQty) {
+        // Cell holds a single TextField for its lifetime — recreating one per
+        // updateItem (the old pattern) destroyed focus on every keystroke and made
+        // multi-digit qty entry impossible.
         return new javafx.scene.control.TableCell<>() {
-            @Override protected void updateItem(TransactionItem it, boolean empty) {
-                super.updateItem(it, empty);
-                if (empty || it == null) { setGraphic(null); return; }
-                TextField tf = new TextField(isQty ? Money.fmt(it.quantity) : (it.customPrice == null ? "" : Money.fmt(it.customPrice)));
-                tf.setPromptText(isQty ? "" : Money.fmt(it.unitPrice));
-                tf.setStyle("-fx-background-color: -overlay-mid; -fx-border-color: -overlay-card; -fx-text-fill: " + (it.customPrice != null && !isQty ? "#d4690a" : "-ink") + "; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 13; -fx-padding: 5 8; -fx-background-radius: 4; -fx-border-radius: 4;");
-                tf.setMaxWidth(isQty ? 100 : 140);
-                tf.setPrefWidth(isQty ? 100 : 140);
+            private final TextField tf = new TextField();
+            private TransactionItem boundItem;
+            private boolean suppressChange = false;
+            {
+                tf.setMaxWidth(isQty ? 110 : 150);
+                tf.setPrefWidth(isQty ? 110 : 150);
+                tf.setStyle("-fx-background-color: -overlay-mid; -fx-border-color: -overlay-card; -fx-text-fill: -ink; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 13; -fx-padding: 5 8; -fx-background-radius: 4; -fx-border-radius: 4;");
                 tf.textProperty().addListener((o, a, b) -> {
-                    if (isQty) it.quantity = ProductsView.parseD(b);
-                    else it.customPrice = b == null || b.isEmpty() ? null : ProductsView.parseD(b);
-                    double p = it.customPrice != null ? it.customPrice : it.unitPrice;
-                    it.amount = it.quantity * p;
-                    cartTable.refresh();
+                    if (suppressChange || boundItem == null) return;
+                    if (isQty) {
+                        // Quantity must be a whole non-negative number.
+                        if (b == null || b.isEmpty()) { boundItem.quantity = 0; }
+                        else if (b.matches("^\\d+$")) { boundItem.quantity = Long.parseLong(b); }
+                        else { return; /* ignore invalid chars; user keeps typing */ }
+                    } else {
+                        boundItem.customPrice = (b == null || b.isEmpty()) ? null : ProductsView.parseD(b);
+                    }
+                    double p = boundItem.customPrice != null ? boundItem.customPrice : boundItem.unitPrice;
+                    boundItem.amount = boundItem.quantity * p;
+                    // Update only the totals — don't call cartTable.refresh() because
+                    // that re-binds every cell and steals focus mid-typing.
                     recalc();
                 });
+            }
+            @Override protected void updateItem(TransactionItem it, boolean empty) {
+                super.updateItem(it, empty);
+                if (empty || it == null) { setGraphic(null); boundItem = null; return; }
+                if (it != boundItem) {
+                    boundItem = it;
+                    suppressChange = true;
+                    if (isQty) tf.setText(it.quantity > 0 ? String.valueOf((long) it.quantity) : "");
+                    else tf.setText(it.customPrice == null ? "" : Money.fmt(it.customPrice));
+                    tf.setPromptText(isQty ? "0" : Money.fmt(it.unitPrice));
+                    suppressChange = false;
+                }
                 setGraphic(tf);
             }
         };
@@ -414,6 +436,9 @@ public class PosView {
                 truckInfoLabel.setText("");
                 dateTf.setText(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
                 recalc();
+
+                // Refresh product list so stock counts reflect the just-completed sale
+                loadData();
 
                 showCompletion(full, result.change);
             } catch (Exception e) { showError(e); }

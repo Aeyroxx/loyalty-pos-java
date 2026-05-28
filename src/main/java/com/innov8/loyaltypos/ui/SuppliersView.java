@@ -147,6 +147,18 @@ public class SuppliersView {
                 emailF.setError("Email format looks off.");
                 ok = false;
             }
+            // At least one contact method required (per professor revision)
+            if (phoneVal.isEmpty() && emailVal.isEmpty()) {
+                phoneF.setError("At least one contact method required — fill in phone OR email.");
+                emailF.setError("At least one contact method required — fill in phone OR email.");
+                ok = false;
+            }
+            // Address required
+            String addrVal = addressF.tf.getText() == null ? "" : addressF.tf.getText().trim();
+            if (addrVal.isEmpty()) {
+                addressF.setError("Supplier address is required.");
+                ok = false;
+            }
             if (!ok) return;
 
             form.name = nameVal;
@@ -157,10 +169,14 @@ public class SuppliersView {
             form.notes = notesF.tf.getText();
 
             try {
-                if (editing == null) SupplierService.create(form);
+                boolean isNew = editing == null;
+                if (isNew) SupplierService.create(form);
                 else SupplierService.update(form);
                 modal.close();
                 load();
+                new Modal(root.getScene().getWindow(),
+                        isNew ? "Supplier Added" : "Supplier Updated",
+                        new Label(form.name + (isNew ? " was added." : " was updated."))).show();
             } catch (Exception ex) {
                 nameF.setError(ex.getMessage() == null ? "Save failed." : ex.getMessage());
             }

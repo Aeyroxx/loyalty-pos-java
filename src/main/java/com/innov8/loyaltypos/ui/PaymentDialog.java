@@ -290,6 +290,13 @@ public class PaymentDialog {
                     return null;
                 }
             }
+            // GCash / Maya require a reference number (proof of transfer)
+            if (("gcash".equals(m) || "maya".equals(m))
+                    && (p.referenceNo == null || p.referenceNo.trim().isEmpty())) {
+                errorBanner.setText(LABELS.get(m) + " requires a reference number (the transaction ID from the e-wallet receipt).");
+                errorBanner.setVisible(true); errorBanner.setManaged(true);
+                return null;
+            }
             if (p.amount > 0) payments.add(p);
         }
         if (payments.isEmpty()) {

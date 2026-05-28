@@ -93,7 +93,8 @@ public class SettingsView {
         Label title = new Label("SETTINGS"); title.getStyleClass().add("page-title");
         root.getChildren().add(title);
 
-        renderAppearance();
+        // Appearance section removed per user revision — sidebar already has a
+        // dedicated DARK/LIGHT MODE toggle button at the bottom.
         for (Section s : SECTIONS) renderSection(s);
 
         // Quick "Test AI connection" button — round-trips a tiny prompt to Gemini.

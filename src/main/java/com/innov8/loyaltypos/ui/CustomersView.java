@@ -185,8 +185,9 @@ public class CustomersView {
             double oldCredit = form.creditLimit;
             form.creditLimit = credit;
 
+            boolean isNew = editing == null;
             try {
-                if (editing == null) CustomerService.create(form);
+                if (isNew) CustomerService.create(form);
                 else CustomerService.update(form);
 
                 // Sync the new credit limit + optional expiration to open PO accounts owned by this customer.
@@ -204,6 +205,9 @@ public class CustomersView {
                 }
                 modal.close();
                 load();
+                new Modal(root.getScene().getWindow(),
+                        isNew ? "Customer Added" : "Customer Updated",
+                        new Label(form.name + (isNew ? " was added." : " was updated."))).show();
             } catch (Exception ex) {
                 nameF.setError(ex.getMessage() == null ? "Save failed." : ex.getMessage());
             }

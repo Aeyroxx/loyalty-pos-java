@@ -36,6 +36,14 @@ public final class PoService {
     }
 
     public static int create(PoAccount p) {
+        // Default-expiry fallback: when the user leaves expiry blank, use the
+        // po_default_expiry_days setting so PO accounts always have a horizon.
+        if (p.expiryDate == null || p.expiryDate.isEmpty()) {
+            try {
+                int days = SettingsService.getInt("po_default_expiry_days", 30);
+                p.expiryDate = java.time.LocalDate.now().plusDays(days).toString();
+            } catch (Exception ignore) {}
+        }
         try (PreparedStatement ps = Database.get().prepareStatement(
                 "INSERT INTO po_accounts (customer_id, reference_no, issued_date, expiry_date, credit_limit, balance_used, status) VALUES (?,?,?,?,?,0,'open')",
                 java.sql.Statement.RETURN_GENERATED_KEYS)) {
@@ -49,6 +57,10 @@ public final class PoService {
             ResultSet rs = ps.getGeneratedKeys();
             int id = rs.next() ? rs.getInt(1) : -1;
             SyncService.queue("po_accounts", id, "create", p);
+            // Per professor: when a PO is created the customer's credit_limit
+            // should reflect that exposure — bump customer.credit_limit to at
+            // least this PO's limit.
+            bumpCustomerCreditLimit(p.customerId, p.creditLimit);
             return id;
         } catch (Exception e) { throw new RuntimeException(e); }
     }
@@ -64,7 +76,18 @@ public final class PoService {
             ps.setInt(5, p.id);
             ps.executeUpdate();
             SyncService.queue("po_accounts", p.id, "update", p);
+            bumpCustomerCreditLimit(p.customerId, p.creditLimit);
         } catch (Exception e) { throw new RuntimeException(e); }
+    }
+
+    /** Raise the customer's credit_limit to at least the given amount. Never lowers it. */
+    private static void bumpCustomerCreditLimit(int customerId, double newLimit) {
+        try (PreparedStatement ps = Database.get().prepareStatement(
+                "UPDATE customers SET credit_limit = MAX(credit_limit, ?) WHERE id = ?")) {
+            ps.setDouble(1, newLimit);
+            ps.setInt(2, customerId);
+            ps.executeUpdate();
+        } catch (Exception ignore) {}
     }
 
     public static List<PoPayment> payments(int poId) {

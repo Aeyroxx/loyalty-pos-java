@@ -232,12 +232,12 @@ public class PoAccountsView {
         }
         content.getChildren().add(phHeader);
 
-        // Payment table
-        TableView<PoPayment> ptable = new TableView<>();
+        // Payment table — reactive items list so addPayment() refreshes inline
+        ObservableList<PoPayment> paymentItems = FXCollections.observableArrayList(PoService.payments(selected.id));
+        TableView<PoPayment> ptable = new TableView<>(paymentItems);
         ptable.getStyleClass().add("data-table");
         ptable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_SUBSEQUENT_COLUMNS);
         ptable.setPrefHeight(220);
-        ptable.setItems(FXCollections.observableArrayList(PoService.payments(selected.id)));
         TableColumn<PoPayment, String> dCol = new TableColumn<>("DATE");
         dCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().paymentDate == null ? "—" : c.getValue().paymentDate.substring(0, Math.min(10, c.getValue().paymentDate.length()))));
         TableColumn<PoPayment, String> aCol = new TableColumn<>("AMOUNT");
@@ -246,6 +246,22 @@ public class PoAccountsView {
         nCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().notes == null || c.getValue().notes.isEmpty() ? "—" : c.getValue().notes));
         ptable.getColumns().addAll(dCol, aCol, nCol);
         content.getChildren().add(ptable);
+
+        // Wire the +Add Payment button's onAction to refresh this table when it fires
+        for (javafx.scene.Node child : phHeader.getChildren()) {
+            if (child instanceof Button b && "+ Add Payment".equals(b.getText())) {
+                b.setOnAction(e -> openPayment(selected, () -> {
+                    paymentItems.setAll(PoService.payments(selected.id));
+                    // also refresh balance_used into the local model
+                    try {
+                        for (PoAccount a : PoService.list()) {
+                            if (a.id == selected.id) { selected.balanceUsed = a.balanceUsed; selected.status = a.status; break; }
+                        }
+                    } catch (Exception ignore) {}
+                    load(); // refresh the main list too
+                }));
+            }
+        }
 
         new Modal(root.getScene().getWindow(), "PO — " + selected.customerName, content, true).show();
     }
@@ -335,7 +351,9 @@ public class PoAccountsView {
         modal.show();
     }
 
-    private void openPayment(PoAccount selected) {
+    private void openPayment(PoAccount selected) { openPayment(selected, this::load); }
+
+    private void openPayment(PoAccount selected, Runnable onSaved) {
         VBox content = new VBox(16);
         Label note = new Label("Recording payment for: " + selected.customerName);
         note.setStyle("-fx-text-fill: -ink-soft; -fx-font-size: 13;");
@@ -364,7 +382,10 @@ public class PoAccountsView {
                 if (amt <= 0) { err.setText("Enter a valid payment amount."); err.setVisible(true); err.setManaged(true); return; }
                 PoService.addPayment(selected.id, amt, OffsetDateTime.now().toString(), notesTf.getText());
                 modal.close();
-                load();
+                if (onSaved != null) onSaved.run();
+                // Success toast
+                new Modal(root.getScene().getWindow(), "Payment Recorded",
+                        new Label("Payment of " + sym + Money.fmt(amt) + " recorded for " + selected.customerName + ".")).show();
             } catch (Exception ex) { showError(ex); }
         });
         modal.show();
