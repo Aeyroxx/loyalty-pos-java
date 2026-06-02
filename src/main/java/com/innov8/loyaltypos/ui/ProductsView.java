@@ -175,6 +175,7 @@ public class ProductsView {
         cancel.getStyleClass().addAll("btn", "btn-ghost");
         Button save = new Button("Save Product");
         save.getStyleClass().addAll("btn", "btn-primary");
+        save.setDefaultButton(true); // Enter submits
         btns.getChildren().addAll(spacer, cancel, save);
         content.getChildren().add(btns);
 

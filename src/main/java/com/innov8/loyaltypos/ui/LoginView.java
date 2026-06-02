@@ -87,30 +87,46 @@ public class LoginView {
         root.getChildren().add(buildGridTexture());
 
         // Layer 3: branding LEFT, PIN RIGHT (matches the original React design).
-        // HBox + ScrollPane: side-by-side stays stable, vertical scroll on small windows.
-        javafx.scene.control.ScrollPane scroller = new javafx.scene.control.ScrollPane();
-        scroller.setFitToWidth(true);
-        scroller.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
-        scroller.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
-        scroller.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
-
+        // Fixed-ratio layout: the entire content sits inside a Group at design size
+        // (1200x680), and a Scale transform shrinks/grows it uniformly with the window.
+        // This keeps the layout proportions identical at every window size.
         VBox left = buildBranding();
         StackPane right = buildPinCardWithGlow();
-        left.setMinWidth(420);
+        left.setMinWidth(500);
         left.setPrefWidth(500);
-        left.setMaxWidth(560);
-        right.setMinWidth(420);
+        left.setMaxWidth(500);
+        right.setMinWidth(440);
 
         HBox content = new HBox(60, left, right);
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(40, 40, 40, 40));
-        HBox.setHgrow(left, Priority.SOMETIMES);
-        HBox.setHgrow(right, Priority.SOMETIMES);
+        // Lock design size — Scale below preserves this ratio.
+        final double DESIGN_W = 1200, DESIGN_H = 680;
+        content.setMinSize(DESIGN_W, DESIGN_H);
+        content.setPrefSize(DESIGN_W, DESIGN_H);
+        content.setMaxSize(DESIGN_W, DESIGN_H);
 
-        scroller.setContent(content);
+        javafx.scene.Group scaler = new javafx.scene.Group(content);
+        javafx.scene.transform.Scale scale = new javafx.scene.transform.Scale(1, 1, 0, 0);
+        scaler.getTransforms().add(scale);
 
-        root.getChildren().add(scroller);
-        StackPane.setAlignment(scroller, Pos.CENTER);
+        StackPane fit = new StackPane(scaler);
+        fit.setAlignment(Pos.CENTER);
+        fit.widthProperty().addListener((o, a, b) -> {
+            double sx = b.doubleValue() / DESIGN_W;
+            double sy = fit.getHeight() / DESIGN_H;
+            double s = Math.min(sx, sy);
+            if (s > 0 && Double.isFinite(s)) { scale.setX(s); scale.setY(s); }
+        });
+        fit.heightProperty().addListener((o, a, b) -> {
+            double sx = fit.getWidth() / DESIGN_W;
+            double sy = b.doubleValue() / DESIGN_H;
+            double s = Math.min(sx, sy);
+            if (s > 0 && Double.isFinite(s)) { scale.setX(s); scale.setY(s); }
+        });
+
+        root.getChildren().add(fit);
+        StackPane.setAlignment(fit, Pos.CENTER);
 
         // staggered fade-slide-in (matches React keyframes)
         animateFadeIn(left, Duration.millis(100));

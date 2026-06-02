@@ -54,6 +54,10 @@ public class App extends Application {
         Scene scene = new Scene(view.getRoot(), 1280, 800);
         applyTheme(scene);
         primaryStage.setScene(scene);
+        // After login, surface POs that expire within 7 days (admins only).
+        if (ctx != null && ctx.currentUser != null && ctx.currentUser.isAdmin()) {
+            javafx.application.Platform.runLater(com.innov8.loyaltypos.ui.PoExpiryNotifier::checkAndShow);
+        }
     }
 
     /** Loads base + theme-specific CSS. Call after any theme change. */

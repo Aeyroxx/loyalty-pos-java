@@ -110,15 +110,42 @@
     -fx-border-color: transparent transparent rgba(0,0,0,0.25) transparent;
     -fx-text-fill: #18181b;
 }
-.combo-box .list-cell {
+.combo-box .list-cell,
+.theme-light .combo-box .list-cell {
     -fx-background-color: #ffffff;
     -fx-text-fill: #18181b;
 }
-.combo-box-popup .list-view { -fx-background-color: #ffffff; -fx-border-color: rgba(0,0,0,0.15); }
+.combo-box-popup .list-view,
+.theme-light .combo-box-popup .list-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: rgba(0,0,0,0.15);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 16, 0.10, 0, 4);
+}
+.combo-box-popup .list-view .list-cell,
+.theme-light .combo-box-popup .list-view .list-cell {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #18181b;
+}
 .combo-box-popup .list-view .list-cell:hover,
-.combo-box-popup .list-view .list-cell:filled:selected {
+.combo-box-popup .list-view .list-cell:filled:selected,
+.theme-light .combo-box-popup .list-view .list-cell:hover,
+.theme-light .combo-box-popup .list-view .list-cell:filled:selected {
     -fx-background-color: rgba(212,105,10,0.15);
     -fx-text-fill: #18181b;
+}
+/* DatePicker popup in light mode (calendar) */
+.theme-light .date-picker-popup,
+.theme-light .date-picker-popup .month-year-pane,
+.theme-light .date-picker-popup .calendar-grid {
+    -fx-background-color: #ffffff;
+}
+.theme-light .date-picker-popup .day-cell,
+.theme-light .date-picker-popup .day-name-cell,
+.theme-light .date-picker-popup .week-number-cell,
+.theme-light .date-picker-popup .month-year-pane .label,
+.theme-light .date-picker-popup .month-year-pane .button {
+    -fx-text-fill: #18181b;
+    -fx-background-color: transparent;
 }
 
 /* Tables */

@@ -115,6 +115,7 @@ public class SuppliersView {
         Region s = new Region(); HBox.setHgrow(s, Priority.ALWAYS);
         Button cancel = new Button("Cancel"); cancel.getStyleClass().addAll("btn", "btn-ghost");
         Button save = new Button("Save Supplier"); save.getStyleClass().addAll("btn", "btn-primary");
+        save.setDefaultButton(true);
         btns.getChildren().addAll(s, cancel, save);
         content.getChildren().add(btns);
 

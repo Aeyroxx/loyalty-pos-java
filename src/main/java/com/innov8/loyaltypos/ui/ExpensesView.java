@@ -171,6 +171,15 @@ public class ExpensesView {
         TableColumn<Expense, String> amt = new TableColumn<>("AMOUNT");
         amt.setCellValueFactory(c -> new SimpleStringProperty("₱" + Money.fmt(c.getValue().amount)));
         amt.setStyle("-fx-alignment: CENTER-RIGHT;");
+        amt.setPrefWidth(140); amt.setMinWidth(120);
+        // Right-aligned, monospaced cells so decimal points line up
+        amt.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+            @Override protected void updateItem(String s, boolean empty) {
+                super.updateItem(s, empty);
+                setText(empty ? null : s);
+                setStyle("-fx-alignment: CENTER-RIGHT; -fx-font-family: 'IBM Plex Mono',monospace;");
+            }
+        });
         table.getColumns().addAll(cat, desc, amt);
 
         if (isAdmin) {

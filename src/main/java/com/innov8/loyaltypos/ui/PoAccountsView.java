@@ -157,6 +157,7 @@ public class PoAccountsView {
         Region s = new Region(); HBox.setHgrow(s, Priority.ALWAYS);
         Button cancel = new Button("Cancel"); cancel.getStyleClass().addAll("btn", "btn-ghost");
         Button create = new Button("Create"); create.getStyleClass().addAll("btn", "btn-primary");
+        create.setDefaultButton(true);
         btns.getChildren().addAll(s, cancel, create);
         content.getChildren().add(btns);
 
@@ -309,6 +310,7 @@ public class PoAccountsView {
         Region s = new Region(); HBox.setHgrow(s, Priority.ALWAYS);
         Button cancel = new Button("Cancel"); cancel.getStyleClass().addAll("btn", "btn-ghost");
         Button save = new Button("Save Changes"); save.getStyleClass().addAll("btn", "btn-primary");
+        save.setDefaultButton(true);
         btns.getChildren().addAll(s, cancel, save);
         content.getChildren().add(btns);
 
@@ -371,6 +373,7 @@ public class PoAccountsView {
         Region s = new Region(); HBox.setHgrow(s, Priority.ALWAYS);
         Button cancel = new Button("Cancel"); cancel.getStyleClass().addAll("btn", "btn-ghost");
         Button save = new Button("Save Payment"); save.getStyleClass().addAll("btn", "btn-primary");
+        save.setDefaultButton(true);
         btns.getChildren().addAll(s, cancel, save);
         content.getChildren().add(btns);
 
