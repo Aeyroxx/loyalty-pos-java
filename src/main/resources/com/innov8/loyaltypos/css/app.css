@@ -253,7 +253,7 @@
     -fx-border-color: rgba(255,255,255,0.10);
     -fx-border-radius: 16;
     -fx-background-radius: 16;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 60, 0.3, 0, 25);
+    -fx-effect: null;
 }
 .modal-header {
     -fx-background-color: rgba(212,105,10,0.15);
@@ -274,7 +274,7 @@
     -fx-border-color: rgba(255,255,255,0.10);
     -fx-border-radius: 24;
     -fx-background-radius: 24;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 50, 0.3, 0, 25);
+    -fx-effect: null;
 }
 .login-headline {
     -fx-font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
@@ -410,4 +410,21 @@
 .summary-card-success {
     -fx-background-color: rgba(34,197,94,0.15);
     -fx-border-color: rgba(34,197,94,0.35);
+}
+
+/* ─── Context menu ──────────────────────────────────────────────────────────── */
+.context-menu {
+    -fx-background-color: -surface;
+    -fx-border-color: rgba(255,255,255,0.12);
+    -fx-effect: null;
+}
+.context-menu .menu-item {
+    -fx-background-color: transparent;
+}
+.context-menu .menu-item .label {
+    -fx-text-fill: -ink;
+}
+.context-menu .menu-item:focused,
+.context-menu .menu-item:hover {
+    -fx-background-color: rgba(212,105,10,0.2);
 }

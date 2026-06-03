@@ -205,9 +205,14 @@ public class PaymentDialog {
             if (prior != null && !prior.isEmpty()) {
                 tf.setText(prior);
             } else {
+                // Auto-fill: calculate remaining from PERSISTED values of other methods
+                // (not from the live `amounts` map which is rebuilt in-order and incomplete)
                 double currentPaid = 0;
                 for (String mm : METHODS) {
-                    if (!mm.equals(m) && amounts.containsKey(mm)) currentPaid += ProductsView.parseD(amounts.get(mm).getText());
+                    if (!mm.equals(m) && selected.getOrDefault(mm, false)) {
+                        String pv = persistedAmounts.get(mm);
+                        if (pv != null && !pv.isEmpty()) currentPaid += ProductsView.parseD(pv);
+                    }
                 }
                 double fill = Math.max(0, total - currentPaid);
                 if (fill > 0) tf.setText(Money.fmt(fill));
@@ -215,6 +220,12 @@ public class PaymentDialog {
             tf.textProperty().addListener((o, a, b) -> {
                 persistedAmounts.put(m, b);
                 recalc();
+            });
+            // Numeric-only filter
+            tf.textProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null && !newVal.matches("[0-9.,]*")) {
+                    tf.setText(newVal.replaceAll("[^0-9.,]", ""));
+                }
             });
             card.getChildren().add(tf);
             amounts.put(m, tf);
@@ -327,6 +338,12 @@ public class PaymentDialog {
         }
         if (payments.isEmpty()) {
             errorBanner.setText("Enter an amount for at least one payment method.");
+            errorBanner.setVisible(true); errorBanner.setManaged(true);
+            return null;
+        }
+        // Fix 6: Reject partial payments — must pay in full
+        if (paid < total - 0.01) {
+            errorBanner.setText("Payment is short by ₱" + Money.fmt(total - paid) + ". The total must be paid in full.");
             errorBanner.setVisible(true); errorBanner.setManaged(true);
             return null;
         }

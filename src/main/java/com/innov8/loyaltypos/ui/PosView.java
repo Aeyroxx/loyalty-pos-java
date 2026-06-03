@@ -195,8 +195,8 @@ public class PosView {
             @Override protected void updateItem(TransactionItem it, boolean empty) {
                 super.updateItem(it, empty);
                 if (empty || it == null) { setGraphic(null); return; }
-                Button x = new Button("×");
-                x.setStyle("-fx-background-color: transparent; -fx-text-fill: #3f3f46; -fx-font-size: 18; -fx-cursor: hand;");
+                Button x = new Button("X");
+                x.setStyle("-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 16; -fx-font-weight: 800; -fx-cursor: hand;");
                 x.setOnAction(e -> cart.remove(it));
                 setGraphic(x);
             }
@@ -214,6 +214,9 @@ public class PosView {
 
         VBox feesBox = new VBox(10);
         feesBox.getChildren().addAll(feeRow("Delivery Charge", deliveryTf), feeRow("Discount", discountTf));
+        // Numeric-only filter for fee fields
+        applyNumericFilter(deliveryTf);
+        applyNumericFilter(discountTf);
         deliveryTf.textProperty().addListener((o, a, b) -> recalc());
         discountTf.textProperty().addListener((o, a, b) -> recalc());
 
@@ -221,7 +224,10 @@ public class PosView {
         totalBox.setAlignment(Pos.CENTER_RIGHT);
         Label totLbl = new Label("TOTAL"); totLbl.setStyle("-fx-text-fill: -faint; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 11; -fx-font-weight: 700;");
         totalLabel.setStyle("-fx-text-fill: -ink; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 32; -fx-font-weight: 600;");
-        totalBox.getChildren().addAll(totLbl, totalLabel);
+        Label vatInfoLabel = new Label();
+        vatInfoLabel.setId("vatInfoLabel");
+        vatInfoLabel.setStyle("-fx-text-fill: -muted; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 11;");
+        totalBox.getChildren().addAll(totLbl, totalLabel, vatInfoLabel);
 
         Button charge = new Button("CHARGE");
         charge.setStyle("-fx-background-color: #d4690a; -fx-text-fill: white; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 18; -fx-font-weight: 800; -fx-padding: 16 36; -fx-background-radius: 8; -fx-cursor: hand;");
@@ -353,8 +359,32 @@ public class PosView {
         double subtotal = cart.stream().mapToDouble(i -> i.amount).sum();
         double delivery = ProductsView.parseD(deliveryTf.getText());
         double discount = ProductsView.parseD(discountTf.getText());
-        double total = subtotal + delivery - discount;
+        double beforeVat = subtotal + delivery - discount;
+
+        // VAT calculation when enabled in settings
+        Object vatEnabledObj = App.ctx.settings.get("vat_enabled");
+        boolean vatEnabled = vatEnabledObj instanceof Boolean ? (Boolean) vatEnabledObj
+                : "true".equalsIgnoreCase(String.valueOf(vatEnabledObj));
+        double vatRate = 0;
+        if (vatEnabled) {
+            Object rateObj = App.ctx.settings.get("vat_rate");
+            if (rateObj instanceof Number) vatRate = ((Number) rateObj).doubleValue();
+            else { try { vatRate = Double.parseDouble(String.valueOf(rateObj)); } catch (Exception ignore) {} }
+        }
+        double vatAmount = vatEnabled && vatRate > 0 ? beforeVat * (vatRate / 100.0) : 0;
+        double total = beforeVat + vatAmount;
+
         totalLabel.setText(sym + Money.fmt(total));
+
+        // Update VAT info label if present
+        javafx.scene.Node vatNode = root.lookup("#vatInfoLabel");
+        if (vatNode instanceof Label vatLbl) {
+            if (vatEnabled && vatRate > 0) {
+                vatLbl.setText("incl. VAT " + Money.fmt(vatRate) + "%: " + sym + Money.fmt(vatAmount));
+            } else {
+                vatLbl.setText("");
+            }
+        }
     }
 
     private void handlePlateBlur() {
@@ -391,7 +421,20 @@ public class PosView {
         double subtotal = cart.stream().mapToDouble(i -> i.amount).sum();
         double delivery = ProductsView.parseD(deliveryTf.getText());
         double discount = ProductsView.parseD(discountTf.getText());
-        double total = subtotal + delivery - discount;
+        double beforeVat = subtotal + delivery - discount;
+
+        // Apply VAT when enabled
+        Object vatEnabledObj = App.ctx.settings.get("vat_enabled");
+        boolean vatEnabled = vatEnabledObj instanceof Boolean ? (Boolean) vatEnabledObj
+                : "true".equalsIgnoreCase(String.valueOf(vatEnabledObj));
+        double vatRate = 0;
+        if (vatEnabled) {
+            Object rateObj = App.ctx.settings.get("vat_rate");
+            if (rateObj instanceof Number) vatRate = ((Number) rateObj).doubleValue();
+            else { try { vatRate = Double.parseDouble(String.valueOf(rateObj)); } catch (Exception ignore) {} }
+        }
+        double vatAmount = vatEnabled && vatRate > 0 ? beforeVat * (vatRate / 100.0) : 0;
+        double total = beforeVat + vatAmount;
 
         PaymentDialog dlg = new PaymentDialog(root.getScene().getWindow(), total, selectedCustomer);
         dlg.show(result -> {
@@ -491,6 +534,15 @@ public class PosView {
     private void showError(Exception e) {
         Label l = new Label(e.getMessage()); l.setWrapText(true);
         new Modal(root.getScene().getWindow(), "Error", l).show();
+    }
+
+    /** Restrict a text field to numeric input only (digits, decimal point, comma). */
+    private static void applyNumericFilter(TextField tf) {
+        tf.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.matches("[0-9.,]*")) {
+                tf.setText(newVal.replaceAll("[^0-9.,]", ""));
+            }
+        });
     }
 
     public Region getRoot() { return root; }

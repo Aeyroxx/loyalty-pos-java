@@ -55,7 +55,21 @@ public final class PosService {
             Database.get().setAutoCommit(false);
 
             double subtotal = items.stream().mapToDouble(i -> i.amount).sum();
-            double total = subtotal + deliveryCharge - discount;
+            double beforeVat = subtotal + deliveryCharge - discount;
+
+            // VAT calculation when enabled in settings
+            Object vatEnabledObj = com.innov8.loyaltypos.App.ctx.settings.get("vat_enabled");
+            boolean vatEnabled = vatEnabledObj instanceof Boolean ? (Boolean) vatEnabledObj
+                    : "true".equalsIgnoreCase(String.valueOf(vatEnabledObj));
+            double vatRate = 0;
+            if (vatEnabled) {
+                Object rateObj = com.innov8.loyaltypos.App.ctx.settings.get("vat_rate");
+                if (rateObj instanceof Number) vatRate = ((Number) rateObj).doubleValue();
+                else { try { vatRate = Double.parseDouble(String.valueOf(rateObj)); } catch (Exception ignore) {} }
+            }
+            double vatAmount = vatEnabled && vatRate > 0 ? beforeVat * (vatRate / 100.0) : 0;
+            double total = beforeVat + vatAmount;
+
             double paid = payments.stream().mapToDouble(p -> p.amount).sum();
             String status;
             if (paid == 0) status = "unpaid";

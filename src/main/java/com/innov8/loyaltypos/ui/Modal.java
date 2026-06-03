@@ -32,7 +32,7 @@ public class Modal {
         card.getStyleClass().add("modal-card");
         card.setMinWidth(wide ? 760 : 480);
         card.setMaxWidth(wide ? 760 : 480);
-        card.setMaxHeight(720);
+        card.setMaxHeight(Region.USE_PREF_SIZE);
 
         HBox header = new HBox();
         header.getStyleClass().add("modal-header");
@@ -61,12 +61,33 @@ public class Modal {
 
         StackPane overlay = new StackPane(card);
         overlay.getStyleClass().add("modal-overlay");
-        overlay.setPrefSize(1200, 800);
         StackPane.setAlignment(card, Pos.CENTER);
 
-        Scene scene = new Scene(overlay, 1200, 800);
+        Scene scene = new Scene(overlay);
         scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        
+        if (owner != null) {
+            stage.setX(owner.getX());
+            stage.setY(owner.getY());
+            stage.setWidth(owner.getWidth());
+            stage.setHeight(owner.getHeight());
+            owner.xProperty().addListener((obs, oldV, newV) -> stage.setX(newV.doubleValue()));
+            owner.yProperty().addListener((obs, oldV, newV) -> stage.setY(newV.doubleValue()));
+            owner.widthProperty().addListener((obs, oldV, newV) -> stage.setWidth(newV.doubleValue()));
+            owner.heightProperty().addListener((obs, oldV, newV) -> stage.setHeight(newV.doubleValue()));
+        } else {
+            overlay.setPrefSize(1200, 800);
+            stage.setWidth(1200);
+            stage.setHeight(800);
+        }
         scene.getStylesheets().add(getClass().getResource("/com/innov8/loyaltypos/css/app.css").toExternalForm());
+        // Apply light theme CSS + class when in light mode so modals follow the toggle
+        if (com.innov8.loyaltypos.App.ctx != null && "light".equals(com.innov8.loyaltypos.App.ctx.theme)) {
+            scene.getStylesheets().add(getClass().getResource("/com/innov8/loyaltypos/css/light.css").toExternalForm());
+            overlay.getStyleClass().add("theme-light");
+        } else {
+            overlay.getStyleClass().add("theme-dark");
+        }
         stage.setScene(scene);
     }
 

@@ -88,4 +88,52 @@ public final class UserService {
             ps.executeUpdate();
         } catch (Exception e) { throw new RuntimeException(e); }
     }
+
+    /** Find active user by email address. Returns null if not found. */
+    public static User findByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) return null;
+        try (PreparedStatement ps = Database.get().prepareStatement(
+                "SELECT id, name, role, email FROM users WHERE LOWER(email)=LOWER(?) AND is_active=1")) {
+            ps.setString(1, email.trim());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                User u = new User(rs.getInt("id"), rs.getString("name"), rs.getString("role"));
+                u.email = rs.getString("email");
+                return u;
+            }
+        } catch (Exception e) { throw new RuntimeException(e); }
+        return null;
+    }
+
+    /** Get the stored PIN hash for a user (used to prevent reuse). */
+    public static String getPinHash(int userId) {
+        try (PreparedStatement ps = Database.get().prepareStatement(
+                "SELECT pin_hash FROM users WHERE id=?")) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getString("pin_hash");
+        } catch (Exception e) { throw new RuntimeException(e); }
+        return null;
+    }
+
+    /** Check if the given PIN is already in use by any active user. */
+    public static boolean isPinInUse(String pin) {
+        String hash = Hashing.sha256(pin);
+        try (PreparedStatement ps = Database.get().prepareStatement(
+                "SELECT COUNT(*) FROM users WHERE pin_hash=? AND is_active=1")) {
+            ps.setString(1, hash);
+            ResultSet rs = ps.executeQuery();
+            return rs.next() && rs.getInt(1) > 0;
+        } catch (Exception e) { throw new RuntimeException(e); }
+    }
+
+    /** Update a user's PIN by ID. */
+    public static void updatePin(int userId, String newPin) {
+        try (PreparedStatement ps = Database.get().prepareStatement(
+                "UPDATE users SET pin_hash=? WHERE id=?")) {
+            ps.setString(1, Hashing.sha256(newPin));
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        } catch (Exception e) { throw new RuntimeException(e); }
+    }
 }

@@ -325,6 +325,11 @@ public class PoAccountsView {
                     return;
                 }
                 String newStatus = statusCb.getValue();
+                // Re-fetch fresh balance from DB to guard against stale in-memory values
+                try {
+                    var freshPo = PoService.get(selected.id);
+                    if (freshPo != null) selected.balanceUsed = freshPo.balanceUsed;
+                } catch (Exception ignore) {}
                 // Guard: cannot mark closed unless the account is fully paid back
                 if ("closed".equals(newStatus) && selected.balanceUsed > 0.009) {
                     err.setText("Cannot close — outstanding balance " + sym + Money.fmt(selected.balanceUsed) + " must be paid first.");

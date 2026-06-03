@@ -108,7 +108,14 @@ public class CustomersView {
         ProductsView.Field nameF = ProductsView.field(content, "Name", form.name);
         ProductsView.Field tinF = ProductsView.field(content, "TIN (12 digits, optional)", form.tin);
         ProductsView.Field phoneF = ProductsView.field(content, "Phone (REQUIRED — 11 digits, e.g. 09171234567)", form.phone);
-        ProductsView.Field creditF = ProductsView.field(content, "Credit Limit (₱)", form.creditLimit > 0 ? String.valueOf(form.creditLimit) : "");
+        // Read default credit limit from settings for new customers
+        double defaultCredit = 0;
+        Object dcObj = App.ctx.settings.get("po_default_credit_limit");
+        if (dcObj instanceof Number) defaultCredit = ((Number) dcObj).doubleValue();
+        else if (dcObj != null) { try { defaultCredit = Double.parseDouble(dcObj.toString()); } catch (Exception ignore) {} }
+        String creditDefault = editing == null && defaultCredit > 0 ? String.valueOf(defaultCredit) : "";
+        ProductsView.Field creditF = ProductsView.field(content, "Credit Limit (₱)",
+                form.creditLimit > 0 ? String.valueOf(form.creditLimit) : creditDefault);
 
         // Optional credit-limit expiration date — drives PO expiry sync when present
         Label expL = new Label("CREDIT EXPIRATION (OPTIONAL)"); expL.getStyleClass().add("field-label");
@@ -177,6 +184,11 @@ public class CustomersView {
                     creditF.setError("Credit limit cannot be negative.");
                     ok = false;
                 }
+            } else {
+                // Apply default credit limit from settings when field is left blank
+                Object dcObj2 = App.ctx.settings.get("po_default_credit_limit");
+                if (dcObj2 instanceof Number) credit = ((Number) dcObj2).doubleValue();
+                else if (dcObj2 != null) { try { credit = Double.parseDouble(dcObj2.toString()); } catch (Exception ignore) {} }
             }
 
             if (!ok) return;

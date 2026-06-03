@@ -61,13 +61,13 @@
 .modal-card, .theme-light .modal-card {
     -fx-background-color: #ffffff;
     -fx-border-color: rgba(0,0,0,0.12);
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 24, 0.10, 0, 6);
+    -fx-effect: null;
 }
 .theme-light .modal-header { -fx-background-color: rgba(212,105,10,0.10); }
 
-/* Pin card glassmorphism: kill the heavy dark drop-shadow for light theme */
+/* Pin card glassmorphism: kill any effects for light theme */
 .theme-light .login-card {
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.10), 24, 0.10, 0, 6);
+    -fx-effect: null;
 }
 
 /* Inputs / combos shouldn't have a dark inner shadow ring in light mode */
@@ -110,26 +110,21 @@
     -fx-border-color: transparent transparent rgba(0,0,0,0.25) transparent;
     -fx-text-fill: #18181b;
 }
-.combo-box .list-cell,
-.theme-light .combo-box .list-cell {
+.combo-box .list-cell {
     -fx-background-color: #ffffff;
     -fx-text-fill: #18181b;
 }
-.combo-box-popup .list-view,
-.theme-light .combo-box-popup .list-view {
+.combo-box-popup .list-view {
     -fx-background-color: #ffffff;
     -fx-border-color: rgba(0,0,0,0.15);
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 16, 0.10, 0, 4);
+    -fx-effect: null;
 }
-.combo-box-popup .list-view .list-cell,
-.theme-light .combo-box-popup .list-view .list-cell {
+.combo-box-popup .list-view .list-cell {
     -fx-background-color: #ffffff;
     -fx-text-fill: #18181b;
 }
 .combo-box-popup .list-view .list-cell:hover,
-.combo-box-popup .list-view .list-cell:filled:selected,
-.theme-light .combo-box-popup .list-view .list-cell:hover,
-.theme-light .combo-box-popup .list-view .list-cell:filled:selected {
+.combo-box-popup .list-view .list-cell:filled:selected {
     -fx-background-color: rgba(212,105,10,0.15);
     -fx-text-fill: #18181b;
 }
@@ -240,4 +235,21 @@
 .theme-light .badge-muted {
     -fx-background-color: rgba(0,0,0,0.06);
     -fx-text-fill: #52525b;
+}
+
+/* Context menu — light theme */
+.context-menu {
+    -fx-background-color: #ffffff;
+    -fx-border-color: rgba(0,0,0,0.12);
+    -fx-effect: null;
+}
+.context-menu .menu-item {
+    -fx-background-color: transparent;
+}
+.context-menu .menu-item .label {
+    -fx-text-fill: #18181b;
+}
+.context-menu .menu-item:focused,
+.context-menu .menu-item:hover {
+    -fx-background-color: rgba(212,105,10,0.12);
 }

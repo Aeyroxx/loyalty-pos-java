@@ -180,6 +180,32 @@ public final class TransactionService {
         }
         try {
             Database.get().setAutoCommit(false);
+
+            // Capture transaction details for the audit trail BEFORE deletion
+            String invoiceNo = null;
+            double totalAmount = 0;
+            try (PreparedStatement ps = Database.get().prepareStatement(
+                    "SELECT invoice_no, total_amount FROM transactions WHERE id=?")) {
+                ps.setInt(1, id);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    invoiceNo = rs.getString("invoice_no");
+                    totalAmount = rs.getDouble("total_amount");
+                }
+            }
+
+            // Insert a 'delete' audit entry into void_log so it shows in the Day Log
+            try (PreparedStatement ps = Database.get().prepareStatement(
+                    "INSERT INTO void_log (transaction_id, invoice_no, action, reason, performed_by, created_at) VALUES (?,?,?,?,?,datetime('now'))")) {
+                ps.setInt(1, id);
+                ps.setString(2, invoiceNo != null ? invoiceNo : "");
+                ps.setString(3, "delete");
+                ps.setString(4, "Deleted (amount: " + totalAmount + ")");
+                if (userId != null) ps.setInt(5, userId); else ps.setNull(5, java.sql.Types.INTEGER);
+                ps.executeUpdate();
+            }
+
+            // Reverse PO balance
             try (PreparedStatement ps = Database.get().prepareStatement(
                     "SELECT po_account_id, amount FROM payments WHERE transaction_id=? AND method='po' AND po_account_id IS NOT NULL")) {
                 ps.setInt(1, id);
@@ -193,6 +219,7 @@ public final class TransactionService {
                     }
                 }
             }
+            // Restore stock
             try (PreparedStatement ps = Database.get().prepareStatement(
                     "SELECT product_id, quantity FROM transaction_items WHERE transaction_id=? AND product_id IS NOT NULL")) {
                 ps.setInt(1, id);
@@ -206,12 +233,19 @@ public final class TransactionService {
                     }
                 }
             }
-            for (String t : new String[]{"transaction_items", "payments", "void_log"}) {
+            // Delete related records — but keep void_log entries with action='delete'
+            for (String t : new String[]{"transaction_items", "payments"}) {
                 try (PreparedStatement ps = Database.get().prepareStatement(
                         "DELETE FROM " + t + " WHERE transaction_id=?")) {
                     ps.setInt(1, id);
                     ps.executeUpdate();
                 }
+            }
+            // Remove old void/voided entries but keep the 'delete' audit entry
+            try (PreparedStatement ps = Database.get().prepareStatement(
+                    "DELETE FROM void_log WHERE transaction_id=? AND action<>'delete'")) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
             }
             try (PreparedStatement ps = Database.get().prepareStatement(
                     "DELETE FROM transactions WHERE id=?")) {

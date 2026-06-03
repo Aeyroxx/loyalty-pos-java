@@ -35,6 +35,16 @@ public final class PoService {
         return out;
     }
 
+    public static PoAccount get(int id) {
+        try (PreparedStatement ps = Database.get().prepareStatement(
+                "SELECT * FROM po_accounts WHERE id=?")) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return map(rs);
+        } catch (Exception e) { throw new RuntimeException(e); }
+        return null;
+    }
+
     public static int create(PoAccount p) {
         // Default-expiry fallback: when the user leaves expiry blank, use the
         // po_default_expiry_days setting so PO accounts always have a horizon.

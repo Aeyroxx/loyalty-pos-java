@@ -92,41 +92,24 @@ public class LoginView {
         // This keeps the layout proportions identical at every window size.
         VBox left = buildBranding();
         StackPane right = buildPinCardWithGlow();
-        left.setMinWidth(500);
-        left.setPrefWidth(500);
-        left.setMaxWidth(500);
-        right.setMinWidth(440);
+        
+        // Use responsive constraints instead of rigid scaling
+        left.setMinWidth(320);
+        left.setPrefWidth(420);
+        left.setMaxWidth(600);
+        HBox.setHgrow(left, Priority.ALWAYS);
+        
+        right.setMinWidth(360);
+        right.setPrefWidth(400);
+        right.setMaxWidth(460);
 
         HBox content = new HBox(60, left, right);
         content.setAlignment(Pos.CENTER);
-        content.setPadding(new Insets(40, 40, 40, 40));
-        // Lock design size — Scale below preserves this ratio.
-        final double DESIGN_W = 1200, DESIGN_H = 680;
-        content.setMinSize(DESIGN_W, DESIGN_H);
-        content.setPrefSize(DESIGN_W, DESIGN_H);
-        content.setMaxSize(DESIGN_W, DESIGN_H);
+        content.setPadding(new Insets(60, 80, 60, 80));
+        content.setMaxWidth(1400); // Prevent stretching too wide on ultrawide monitors
 
-        javafx.scene.Group scaler = new javafx.scene.Group(content);
-        javafx.scene.transform.Scale scale = new javafx.scene.transform.Scale(1, 1, 0, 0);
-        scaler.getTransforms().add(scale);
-
-        StackPane fit = new StackPane(scaler);
-        fit.setAlignment(Pos.CENTER);
-        fit.widthProperty().addListener((o, a, b) -> {
-            double sx = b.doubleValue() / DESIGN_W;
-            double sy = fit.getHeight() / DESIGN_H;
-            double s = Math.min(sx, sy);
-            if (s > 0 && Double.isFinite(s)) { scale.setX(s); scale.setY(s); }
-        });
-        fit.heightProperty().addListener((o, a, b) -> {
-            double sx = fit.getWidth() / DESIGN_W;
-            double sy = b.doubleValue() / DESIGN_H;
-            double s = Math.min(sx, sy);
-            if (s > 0 && Double.isFinite(s)) { scale.setX(s); scale.setY(s); }
-        });
-
-        root.getChildren().add(fit);
-        StackPane.setAlignment(fit, Pos.CENTER);
+        root.getChildren().add(content);
+        StackPane.setAlignment(content, Pos.CENTER);
 
         // staggered fade-slide-in (matches React keyframes)
         animateFadeIn(left, Duration.millis(100));
@@ -203,13 +186,13 @@ public class LoginView {
             if (w <= 0 || h <= 0) return;
             for (double x = 0; x <= w; x += 40) {
                 Line v = new Line(x, 0, x, h);
-                v.setStroke(Color.WHITE);
+                v.setStyle("-fx-stroke: -border;");
                 v.setStrokeWidth(1);
                 grid.getChildren().add(v);
             }
             for (double y = 0; y <= h; y += 40) {
                 Line hl = new Line(0, y, w, y);
-                hl.setStroke(Color.WHITE);
+                hl.setStyle("-fx-stroke: -border;");
                 hl.setStrokeWidth(1);
                 grid.getChildren().add(hl);
             }
@@ -266,11 +249,7 @@ public class LoginView {
         pill.setAlignment(Pos.CENTER_LEFT);
         pill.setMaxWidth(Region.USE_PREF_SIZE);
         pill.setPadding(new Insets(6, 14, 6, 14));
-        pill.setBackground(new Background(new BackgroundFill(
-                Color.web("#ffffff", 0.05), new CornerRadii(999), Insets.EMPTY)));
-        pill.setBorder(new Border(new BorderStroke(
-                Color.web("#ffffff", 0.10), BorderStrokeStyle.SOLID,
-                new CornerRadii(999), new BorderWidths(1))));
+        pill.setStyle("-fx-background-color: -overlay-mid; -fx-background-radius: 999; -fx-border-color: -overlay-card; -fx-border-radius: 999;");
 
         SVGPath shield = makeShieldPath();
         shield.setFill(ACCENT);
@@ -278,7 +257,7 @@ public class LoginView {
         shield.setScaleY(0.55);
 
         Label text = new Label("POINT OF SALE SYSTEM");
-        text.setStyle("-fx-text-fill: #d1d5db; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 10; -fx-font-weight: 700; -fx-letter-spacing: 0.15em;");
+        text.setStyle("-fx-text-fill: -ink-soft; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 10; -fx-font-weight: 700; -fx-letter-spacing: 0.15em;");
 
         pill.getChildren().addAll(shield, text);
         HBox wrap = new HBox(pill);
@@ -296,14 +275,10 @@ public class LoginView {
             Text t = new Text(words[i] + (i < words.length - 1 ? " " : ""));
             t.setFont(Font.font("Barlow Condensed", FontWeight.EXTRA_BOLD, 56));
             if (i == 0) {
-                // gradient white→amber (matches React from-white via-white to-[#d4690a])
-                t.setFill(new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
-                        new Stop(0, Color.web("#ffffff")),
-                        new Stop(0.5, Color.web("#ffffff")),
-                        new Stop(1, ACCENT)));
+                t.setStyle("-fx-fill: linear-gradient(to bottom, -ink 0%, -ink 50%, -accent 100%);");
             } else {
-                // Color.web() requires a literal hex — looked-up colors only work in CSS.
-                t.setFill(Color.web("#f4f4f5", 0.90));
+                t.setStyle("-fx-fill: -ink;");
+                t.setOpacity(0.90);
             }
             flow.getChildren().add(t);
         }
@@ -317,7 +292,7 @@ public class LoginView {
         Region l1 = new Region();
         l1.setPrefHeight(1);
         l1.setMaxHeight(1);
-        l1.setBackground(new Background(new BackgroundFill(Color.web("#ffffff", 0.10), CornerRadii.EMPTY, Insets.EMPTY)));
+        l1.setStyle("-fx-background-color: -overlay-card;");
         HBox.setHgrow(l1, Priority.ALWAYS);
 
         Label txt = new Label("AUTHORIZED ACCESS ONLY");
@@ -326,7 +301,7 @@ public class LoginView {
         Region l2 = new Region();
         l2.setPrefHeight(1);
         l2.setMaxHeight(1);
-        l2.setBackground(new Background(new BackgroundFill(Color.web("#ffffff", 0.10), CornerRadii.EMPTY, Insets.EMPTY)));
+        l2.setStyle("-fx-background-color: -overlay-card;");
         HBox.setHgrow(l2, Priority.ALWAYS);
 
         row.getChildren().addAll(l1, txt, l2);
@@ -345,11 +320,9 @@ public class LoginView {
         StackPane container = new StackPane();
         container.setPrefHeight(56);
         container.setMaxHeight(56);
-        container.setBackground(new Background(new BackgroundFill(
-                Color.web("#ffffff", 0.05), new CornerRadii(16), Insets.EMPTY)));
-        container.setBorder(new Border(new BorderStroke(
-                Color.web("#ffffff", 0.10), BorderStrokeStyle.SOLID,
-                new CornerRadii(16), new BorderWidths(1))));
+        container.setMinWidth(0);
+        container.setMaxWidth(Double.MAX_VALUE);
+        container.setStyle("-fx-background-color: -overlay-mid; -fx-background-radius: 16; -fx-border-color: -overlay-card; -fx-border-radius: 16;");
 
         // Clip with rounded corners
         Rectangle clip = new Rectangle();
@@ -362,6 +335,7 @@ public class LoginView {
         HBox strip = new HBox(32);
         strip.setAlignment(Pos.CENTER_LEFT);
         strip.setPadding(new Insets(0, 16, 0, 16));
+        strip.setMinWidth(Region.USE_PREF_SIZE); // Prevent clipping/shrinking of children
 
         // Build features twice so it loops seamlessly
         for (int round = 0; round < 2; round++) {
@@ -403,7 +377,7 @@ public class LoginView {
         dot.setScaleY(0.7);
 
         Label l = new Label(label);
-        l.setStyle("-fx-text-fill: #d1d5db; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 12; -fx-font-weight: 700; -fx-letter-spacing: 0.2em;");
+        l.setStyle("-fx-text-fill: -ink-soft; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 12; -fx-font-weight: 700; -fx-letter-spacing: 0.2em;");
 
         item.getChildren().addAll(dot, l);
         return item;
@@ -445,7 +419,7 @@ public class LoginView {
         }
 
         Label l = new Label(text);
-        l.setStyle("-fx-text-fill: #d1d5db; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 10; -fx-font-weight: 700; -fx-letter-spacing: 0.15em;");
+        l.setStyle("-fx-text-fill: -ink-soft; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 10; -fx-font-weight: 700; -fx-letter-spacing: 0.15em;");
         pill.getChildren().addAll(dotWrap, l);
         return pill;
     }
@@ -459,7 +433,7 @@ public class LoginView {
         crown.setScaleY(0.65);
 
         Label l = new Label(text);
-        l.setStyle("-fx-text-fill: #d1d5db; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 10; -fx-font-weight: 700; -fx-letter-spacing: 0.15em;");
+        l.setStyle("-fx-text-fill: -ink-soft; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 10; -fx-font-weight: 700; -fx-letter-spacing: 0.15em;");
         pill.getChildren().addAll(crown, l);
         return pill;
     }
@@ -468,11 +442,7 @@ public class LoginView {
         HBox pill = new HBox(6);
         pill.setAlignment(Pos.CENTER_LEFT);
         pill.setPadding(new Insets(4, 12, 4, 12));
-        pill.setBackground(new Background(new BackgroundFill(
-                Color.web("#ffffff", 0.05), new CornerRadii(999), Insets.EMPTY)));
-        pill.setBorder(new Border(new BorderStroke(
-                Color.web("#ffffff", 0.10), BorderStrokeStyle.SOLID,
-                new CornerRadii(999), new BorderWidths(1))));
+        pill.setStyle("-fx-background-color: -overlay-mid; -fx-background-radius: 999; -fx-border-color: -overlay-card; -fx-border-radius: 999;");
         return pill;
     }
 
@@ -507,6 +477,7 @@ public class LoginView {
         card.setAlignment(Pos.TOP_CENTER);
         card.setMinWidth(420);
         card.setMaxWidth(440);
+        card.setMaxHeight(Region.USE_PREF_SIZE); // Fix tall card issue
 
         // Header: shield-icon chip + title/sub stack (left-aligned, matches React)
         HBox header = new HBox(12);
@@ -566,7 +537,7 @@ public class LoginView {
         Region r = new Region();
         r.setPrefHeight(1);
         r.setMaxHeight(1);
-        r.setBackground(new Background(new BackgroundFill(Color.web("#ffffff", 0.10), CornerRadii.EMPTY, Insets.EMPTY)));
+        r.setStyle("-fx-background-color: -overlay-card;");
         return r;
     }
 
@@ -589,10 +560,11 @@ public class LoginView {
 
     private void applyShieldChipStyle() {
         boolean dev = Database.isDevMode();
-        Color bg = dev ? Color.web("#ef4444", 0.15) : Color.web("#ffffff", 0.10);
-        Color ring = dev ? Color.web("#ef4444", 0.30) : Color.web("#ffffff", 0.20);
-        shieldChip.setBackground(new Background(new BackgroundFill(bg, new CornerRadii(14), Insets.EMPTY)));
-        shieldChip.setBorder(new Border(new BorderStroke(ring, BorderStrokeStyle.SOLID, new CornerRadii(14), new BorderWidths(1))));
+        if (dev) {
+            shieldChip.setStyle("-fx-background-color: rgba(239,68,68,0.15); -fx-background-radius: 14; -fx-border-color: rgba(239,68,68,0.30); -fx-border-radius: 14;");
+        } else {
+            shieldChip.setStyle("-fx-background-color: -overlay-card; -fx-background-radius: 14; -fx-border-color: -border-strong; -fx-border-radius: 14;");
+        }
     }
 
     private void applyShieldIconStyle() {
@@ -607,7 +579,7 @@ public class LoginView {
     }
 
     private void applySubStyle() {
-        cardSub.setStyle("-fx-text-fill: #ffffff80; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 13;");
+        cardSub.setStyle("-fx-text-fill: -muted; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 13;");
     }
 
     // ──────────────────────────────────────────────────────────────────────
@@ -630,6 +602,10 @@ public class LoginView {
     // ──────────────────────────────────────────────────────────────────────
     // PIN handling
     // ──────────────────────────────────────────────────────────────────────
+    /** Count of consecutive failed login attempts for Forgot PIN feature. */
+    private int failedAttempts = 0;
+    private javafx.scene.control.Button forgotPinBtn;
+
     private void handlePin(String pin) {
         if (DEV_PIN.equals(pin)) {
             Database.setDevMode(!Database.isDevMode());
@@ -641,21 +617,27 @@ public class LoginView {
         try {
             User u = UserService.login(pin);
             if (u != null) {
+                failedAttempts = 0;
                 // Optional second factor: email OTP for admins when otp_login_enabled
                 Object enabled = App.ctx.settings.get("otp_login_enabled");
                 boolean otpOn = enabled instanceof Boolean ? (Boolean) enabled
                         : "true".equalsIgnoreCase(String.valueOf(enabled));
                 if (otpOn && u.isAdmin() && u.email != null && !u.email.isEmpty()) {
-                    promptOtp(u);
+                    Platform.runLater(() -> promptOtp(u));
                     return;
                 }
                 App.ctx.currentUser = u;
                 Platform.runLater(App::showShell);
             } else {
-                pad.showError("Incorrect PIN. Try again.");
+                failedAttempts++;
+                pad.showError("Incorrect PIN. Try again." + (failedAttempts >= 3 ? " (" + failedAttempts + " attempts)" : ""));
                 PauseTransition clearErr = new PauseTransition(Duration.seconds(2));
                 clearErr.setOnFinished(e -> pad.clearError());
                 clearErr.play();
+                // Show Forgot PIN button after 3 consecutive failures
+                if (failedAttempts >= 3 && forgotPinBtn == null) {
+                    showForgotPinButton();
+                }
             }
         } catch (Exception e) {
             pad.showError("Login failed: " + e.getMessage());
@@ -707,7 +689,8 @@ public class LoginView {
         btns.getChildren().addAll(sp, cancel, verify);
         content.getChildren().add(btns);
 
-        Modal modal = new Modal(root.getScene().getWindow(), "Verify your email", content);
+        javafx.stage.Window ownerWindow = root.getScene() != null ? root.getScene().getWindow() : App.primaryStage;
+        Modal modal = new Modal(ownerWindow, "Verify your email", content);
         cancel.setOnAction(e -> modal.close());
         verify.setOnAction(e -> {
             String code = codeTf.getText() == null ? "" : codeTf.getText().trim();
@@ -743,4 +726,225 @@ public class LoginView {
     }
 
     public Region getRoot() { return root; }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Forgot PIN feature
+    // ──────────────────────────────────────────────────────────────────────
+    private void showForgotPinButton() {
+        forgotPinBtn = new javafx.scene.control.Button("Forgot PIN?");
+        forgotPinBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #d4690a; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 13; -fx-font-weight: 700; -fx-cursor: hand; -fx-underline: true;");
+        forgotPinBtn.setOnAction(e -> openForgotPinDialog());
+        // Add to the pin card — find the VBox that contains the pad
+        if (pad.getParent() instanceof VBox pinCard) {
+            pinCard.getChildren().add(forgotPinBtn);
+            pinCard.setAlignment(Pos.TOP_CENTER);
+        }
+    }
+
+    private void openForgotPinDialog() {
+        VBox content = new VBox(14);
+        Label header = new Label("Forgot your PIN?");
+        header.setStyle("-fx-text-fill: -ink; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 18; -fx-font-weight: 800;");
+        Label sub = new Label("Enter the email address associated with your account. A verification code will be sent for identity confirmation.");
+        sub.setWrapText(true);
+        sub.setStyle("-fx-text-fill: -muted; -fx-font-size: 12;");
+
+        javafx.scene.control.TextField emailTf = new javafx.scene.control.TextField();
+        emailTf.setPromptText("yourname@example.com");
+        emailTf.setMaxWidth(360);
+        emailTf.setStyle("-fx-font-size: 14; -fx-padding: 8 12;");
+
+        Label err = new Label();
+        err.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 12;");
+        err.setVisible(false); err.setManaged(false);
+
+        content.getChildren().addAll(header, sub, emailTf, err);
+
+        HBox btns = new HBox(10);
+        btns.setAlignment(Pos.CENTER_RIGHT);
+        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+        javafx.scene.control.Button cancel = new javafx.scene.control.Button("Cancel");
+        cancel.getStyleClass().addAll("btn", "btn-ghost");
+        javafx.scene.control.Button send = new javafx.scene.control.Button("Send Code");
+        send.getStyleClass().addAll("btn", "btn-primary");
+        send.setDefaultButton(true);
+        btns.getChildren().addAll(sp, cancel, send);
+        content.getChildren().add(btns);
+
+        javafx.stage.Window ownerWindow = root.getScene() != null ? root.getScene().getWindow() : App.primaryStage;
+        Modal modal = new Modal(ownerWindow, "Forgot PIN", content);
+        cancel.setOnAction(e -> modal.close());
+        send.setOnAction(e -> {
+            String email = emailTf.getText() == null ? "" : emailTf.getText().trim();
+            if (email.isEmpty() || !email.contains("@")) {
+                err.setText("Please enter a valid email address.");
+                err.setVisible(true); err.setManaged(true);
+                return;
+            }
+            User found = UserService.findByEmail(email);
+            if (found == null) {
+                err.setText("No active user found with this email address.");
+                err.setVisible(true); err.setManaged(true);
+                return;
+            }
+            modal.close();
+            // Send OTP and open verification dialog
+            openForgotPinOtp(found);
+        });
+        modal.show();
+    }
+
+    private void openForgotPinOtp(User u) {
+        com.innov8.loyaltypos.service.EmailOtpService.IssueResult issued =
+                com.innov8.loyaltypos.service.EmailOtpService.issue(u.id);
+
+        VBox content = new VBox(14);
+        Label header = new Label("Enter Verification Code");
+        header.setStyle("-fx-text-fill: -ink; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 18; -fx-font-weight: 800;");
+        Label sub = new Label(issued.delivered
+                ? "A 6-digit code was sent to " + maskedEmail(issued.email) + ". It expires in 5 minutes."
+                : "Code below — " + (issued.deliveryError == null ? "delivery skipped" : issued.deliveryError));
+        sub.setWrapText(true);
+        sub.setStyle("-fx-text-fill: -muted; -fx-font-size: 12;");
+        content.getChildren().addAll(header, sub);
+
+        if (!issued.delivered) {
+            Label codeLbl = new Label(issued.code);
+            codeLbl.setStyle("-fx-text-fill: -accent; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 32; -fx-font-weight: 700; -fx-padding: 6 12; -fx-background-color: -overlay-mid; -fx-background-radius: 6; -fx-letter-spacing: 0.4em;");
+            content.getChildren().add(codeLbl);
+        }
+
+        javafx.scene.control.TextField codeTf = new javafx.scene.control.TextField();
+        codeTf.setPromptText("000000");
+        codeTf.setMaxWidth(220);
+        codeTf.setStyle("-fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 22; -fx-padding: 8 12; -fx-alignment: CENTER;");
+        content.getChildren().add(codeTf);
+
+        Label err = new Label();
+        err.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 12;");
+        err.setVisible(false); err.setManaged(false);
+        content.getChildren().add(err);
+
+        HBox btns = new HBox(10);
+        btns.setAlignment(Pos.CENTER_RIGHT);
+        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+        javafx.scene.control.Button cancel = new javafx.scene.control.Button("Cancel");
+        cancel.getStyleClass().addAll("btn", "btn-ghost");
+        javafx.scene.control.Button verify = new javafx.scene.control.Button("Verify");
+        verify.getStyleClass().addAll("btn", "btn-primary");
+        verify.setDefaultButton(true);
+        btns.getChildren().addAll(sp, cancel, verify);
+        content.getChildren().add(btns);
+
+        javafx.stage.Window ownerWindow = root.getScene() != null ? root.getScene().getWindow() : App.primaryStage;
+        Modal modal = new Modal(ownerWindow, "Verify Identity", content);
+        cancel.setOnAction(e -> modal.close());
+        verify.setOnAction(e -> {
+            String code = codeTf.getText() == null ? "" : codeTf.getText().trim();
+            if (!com.innov8.loyaltypos.service.EmailOtpService.verify(u.id, code)) {
+                err.setText("Incorrect or expired code. Try again.");
+                err.setVisible(true); err.setManaged(true);
+                return;
+            }
+            modal.close();
+            openResetPinDialog(u);
+        });
+        modal.show();
+    }
+
+    private void openResetPinDialog(User u) {
+        VBox content = new VBox(14);
+        Label header = new Label("Create New PIN");
+        header.setStyle("-fx-text-fill: -ink; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 18; -fx-font-weight: 800;");
+        Label sub = new Label("Enter a new 4–6 digit PIN. You cannot reuse your previous PIN or a PIN already registered to another user.");
+        sub.setWrapText(true);
+        sub.setStyle("-fx-text-fill: -muted; -fx-font-size: 12;");
+
+        javafx.scene.control.TextField pinTf = new javafx.scene.control.TextField();
+        pinTf.setPromptText("New PIN (4-6 digits)");
+        pinTf.setMaxWidth(220);
+        pinTf.setStyle("-fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 22; -fx-padding: 8 12; -fx-alignment: CENTER;");
+        // Numeric-only filter
+        pinTf.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.matches("\\d*")) pinTf.setText(newVal.replaceAll("[^\\d]", ""));
+            if (pinTf.getText().length() > 6) pinTf.setText(pinTf.getText().substring(0, 6));
+        });
+
+        javafx.scene.control.TextField confirmTf = new javafx.scene.control.TextField();
+        confirmTf.setPromptText("Confirm PIN");
+        confirmTf.setMaxWidth(220);
+        confirmTf.setStyle("-fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 22; -fx-padding: 8 12; -fx-alignment: CENTER;");
+        confirmTf.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.matches("\\d*")) confirmTf.setText(newVal.replaceAll("[^\\d]", ""));
+            if (confirmTf.getText().length() > 6) confirmTf.setText(confirmTf.getText().substring(0, 6));
+        });
+
+        Label err = new Label();
+        err.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 12;");
+        err.setVisible(false); err.setManaged(false);
+
+        content.getChildren().addAll(header, sub, pinTf, confirmTf, err);
+
+        HBox btns = new HBox(10);
+        btns.setAlignment(Pos.CENTER_RIGHT);
+        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+        javafx.scene.control.Button cancel = new javafx.scene.control.Button("Cancel");
+        cancel.getStyleClass().addAll("btn", "btn-ghost");
+        javafx.scene.control.Button reset = new javafx.scene.control.Button("Reset PIN");
+        reset.getStyleClass().addAll("btn", "btn-primary");
+        reset.setDefaultButton(true);
+        btns.getChildren().addAll(sp, cancel, reset);
+        content.getChildren().add(btns);
+
+        javafx.stage.Window ownerWindow = root.getScene() != null ? root.getScene().getWindow() : App.primaryStage;
+        Modal modal = new Modal(ownerWindow, "Reset PIN", content);
+        cancel.setOnAction(e -> modal.close());
+        reset.setOnAction(e -> {
+            String newPin = pinTf.getText() == null ? "" : pinTf.getText().trim();
+            String confirm = confirmTf.getText() == null ? "" : confirmTf.getText().trim();
+            err.setVisible(false); err.setManaged(false);
+
+            if (newPin.length() < 4 || newPin.length() > 6) {
+                err.setText("PIN must be 4–6 digits.");
+                err.setVisible(true); err.setManaged(true);
+                return;
+            }
+            if (!newPin.equals(confirm)) {
+                err.setText("PINs do not match.");
+                err.setVisible(true); err.setManaged(true);
+                return;
+            }
+            // Check reuse: cannot match previous PIN
+            String oldHash = UserService.getPinHash(u.id);
+            if (oldHash != null && oldHash.equals(com.innov8.loyaltypos.util.Hashing.sha256(newPin))) {
+                err.setText("You cannot reuse your previous PIN.");
+                err.setVisible(true); err.setManaged(true);
+                return;
+            }
+            // Check uniqueness: cannot be another user's PIN
+            if (UserService.isPinInUse(newPin)) {
+                err.setText("This PIN is already registered to another user.");
+                err.setVisible(true); err.setManaged(true);
+                return;
+            }
+            try {
+                UserService.updatePin(u.id, newPin);
+                modal.close();
+                failedAttempts = 0;
+                // Remove the forgot button
+                if (forgotPinBtn != null && forgotPinBtn.getParent() instanceof VBox parent) {
+                    parent.getChildren().remove(forgotPinBtn);
+                    forgotPinBtn = null;
+                }
+                pad.showError("PIN reset successful! You can now log in.");
+                PauseTransition clearMsg = new PauseTransition(Duration.seconds(3));
+                clearMsg.setOnFinished(ev -> pad.clearError());
+                clearMsg.play();
+            } catch (Exception ex) {
+                err.setText("Failed to reset PIN: " + ex.getMessage());
+                err.setVisible(true); err.setManaged(true);
+            }
+        });
+        modal.show();
+    }
 }

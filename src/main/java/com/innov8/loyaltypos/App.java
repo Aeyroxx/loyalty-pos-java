@@ -39,6 +39,14 @@ public class App extends Application {
         stage.setMinHeight(700);
         stage.setWidth(1280);
         stage.setHeight(800);
+
+        // Exit confirmation — prevent accidental closure
+        stage.setOnCloseRequest(event -> {
+            boolean confirmed = com.innov8.loyaltypos.ui.ConfirmDialog.show(
+                    stage, "Are you sure you want to exit Loyalty POS?");
+            if (!confirmed) event.consume();
+        });
+
         stage.show();
     }
 
