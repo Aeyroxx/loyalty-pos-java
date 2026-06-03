@@ -4,6 +4,7 @@ public class User {
     public int id;
     public String name;
     public String role;
+    public String email = "";
     public boolean isActive = true;
 
     public User() {}

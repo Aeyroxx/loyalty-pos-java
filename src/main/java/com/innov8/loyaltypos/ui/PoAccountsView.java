@@ -356,8 +356,12 @@ public class PoAccountsView {
     private void openPayment(PoAccount selected) { openPayment(selected, this::load); }
 
     private void openPayment(PoAccount selected, Runnable onSaved) {
-        VBox content = new VBox(16);
-        Label note = new Label("Recording payment for: " + selected.customerName);
+        // Split-payment dialog: cash + gcash + maya. Each method has its own
+        // amount field; GCash/Maya additionally require a reference number when
+        // the amount is non-zero. Total is computed live across all three.
+        VBox content = new VBox(14);
+        Label note = new Label("Recording payment for: " + selected.customerName
+                + "  (Outstanding: " + sym + Money.fmt(selected.balanceUsed) + ")");
         note.setStyle("-fx-text-fill: -ink-soft; -fx-font-size: 13;");
         content.getChildren().add(note);
 
@@ -365,8 +369,25 @@ public class PoAccountsView {
         err.setVisible(false); err.setManaged(false);
         content.getChildren().add(err);
 
-        TextField amtTf = ProductsView.labeledField(content, "Amount", "");
+        TextField cashTf = ProductsView.labeledField(content, "Cash Amount", "");
+        TextField gcashTf = ProductsView.labeledField(content, "GCash Amount", "");
+        TextField gcashRefTf = ProductsView.labeledField(content, "GCash Reference No. (required when GCash > 0)", "");
+        TextField mayaTf = ProductsView.labeledField(content, "Maya Amount", "");
+        TextField mayaRefTf = ProductsView.labeledField(content, "Maya Reference No. (required when Maya > 0)", "");
         TextField notesTf = ProductsView.labeledField(content, "Notes (optional)", "");
+
+        Label totalLbl = new Label("TOTAL: " + sym + "0.00");
+        totalLbl.setStyle("-fx-text-fill: -accent; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 18; -fx-font-weight: 700;");
+        content.getChildren().add(totalLbl);
+        Runnable recompute = () -> {
+            double sum = ProductsView.parseD(cashTf.getText())
+                    + ProductsView.parseD(gcashTf.getText())
+                    + ProductsView.parseD(mayaTf.getText());
+            totalLbl.setText("TOTAL: " + sym + Money.fmt(sum));
+        };
+        cashTf.textProperty().addListener((o,a,b) -> recompute.run());
+        gcashTf.textProperty().addListener((o,a,b) -> recompute.run());
+        mayaTf.textProperty().addListener((o,a,b) -> recompute.run());
 
         HBox btns = new HBox(10);
         btns.setAlignment(Pos.CENTER_RIGHT);
@@ -377,21 +398,49 @@ public class PoAccountsView {
         btns.getChildren().addAll(s, cancel, save);
         content.getChildren().add(btns);
 
-        Modal modal = new Modal(root.getScene().getWindow(), "Record Payment", content);
+        Modal modal = new Modal(root.getScene().getWindow(), "Record Payment (Split)", content, true);
         cancel.setOnAction(e -> modal.close());
         save.setOnAction(e -> {
             try {
-                double amt = ProductsView.parseD(amtTf.getText());
-                if (amt <= 0) { err.setText("Enter a valid payment amount."); err.setVisible(true); err.setManaged(true); return; }
-                PoService.addPayment(selected.id, amt, OffsetDateTime.now().toString(), notesTf.getText());
+                double cash = ProductsView.parseD(cashTf.getText());
+                double gcash = ProductsView.parseD(gcashTf.getText());
+                double maya = ProductsView.parseD(mayaTf.getText());
+                double total = cash + gcash + maya;
+                if (total <= 0) {
+                    err.setText("Enter at least one positive payment amount across Cash / GCash / Maya.");
+                    err.setVisible(true); err.setManaged(true);
+                    return;
+                }
+                if (gcash > 0 && (gcashRefTf.getText() == null || gcashRefTf.getText().trim().isEmpty())) {
+                    err.setText("GCash payment requires a reference number.");
+                    err.setVisible(true); err.setManaged(true);
+                    return;
+                }
+                if (maya > 0 && (mayaRefTf.getText() == null || mayaRefTf.getText().trim().isEmpty())) {
+                    err.setText("Maya payment requires a reference number.");
+                    err.setVisible(true); err.setManaged(true);
+                    return;
+                }
+                String baseNotes = notesTf.getText() == null ? "" : notesTf.getText().trim();
+                String when = OffsetDateTime.now().toString();
+                if (cash > 0)  PoService.addPayment(selected.id, cash,  when, prefix("CASH", null, baseNotes));
+                if (gcash > 0) PoService.addPayment(selected.id, gcash, when, prefix("GCASH", gcashRefTf.getText(), baseNotes));
+                if (maya > 0)  PoService.addPayment(selected.id, maya,  when, prefix("MAYA",  mayaRefTf.getText(), baseNotes));
                 modal.close();
                 if (onSaved != null) onSaved.run();
-                // Success toast
                 new Modal(root.getScene().getWindow(), "Payment Recorded",
-                        new Label("Payment of " + sym + Money.fmt(amt) + " recorded for " + selected.customerName + ".")).show();
+                        new Label("Total payment of " + sym + Money.fmt(total) + " recorded for " + selected.customerName + ".")).show();
             } catch (Exception ex) { showError(ex); }
         });
         modal.show();
+    }
+
+    private static String prefix(String method, String ref, String notes) {
+        StringBuilder sb = new StringBuilder("[").append(method);
+        if (ref != null && !ref.trim().isEmpty()) sb.append(" #").append(ref.trim());
+        sb.append("]");
+        if (notes != null && !notes.isEmpty()) sb.append(" ").append(notes);
+        return sb.toString();
     }
 
     private void showError(Exception e) { new Modal(root.getScene().getWindow(), "Error", new Label(e.getMessage())).show(); }

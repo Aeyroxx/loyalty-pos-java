@@ -96,6 +96,11 @@ public final class Database {
                 WHERE item_code IS NULL AND product_id IS NOT NULL""");
         } catch (SQLException ignore) {}
 
+        // Email column on users — idempotent migration for legacy DBs (for OTP login)
+        try (Statement st = conn.createStatement()) {
+            st.execute("ALTER TABLE users ADD COLUMN email TEXT");
+        } catch (SQLException ignore) {}
+
         // Suppliers table — idempotent migration for legacy DBs
         try (Statement st = conn.createStatement()) {
             st.executeUpdate("""
@@ -192,6 +197,7 @@ public final class Database {
                   name TEXT NOT NULL,
                   role TEXT NOT NULL CHECK(role IN ('admin','cashier')),
                   pin_hash TEXT NOT NULL,
+                  email TEXT,
                   is_active INTEGER NOT NULL DEFAULT 1
                 )""");
             st.executeUpdate("""
@@ -366,6 +372,12 @@ public final class Database {
                 {"gemini_api_key", "\"\""},
                 {"gemini_model", "\"gemini-3.1-flash-lite\""},
                 {"ai_enabled", "false"},
+                {"smtp_host", "\"\""},
+                {"smtp_port", "465"},
+                {"smtp_user", "\"\""},
+                {"smtp_pass", "\"\""},
+                {"smtp_from", "\"\""},
+                {"otp_login_enabled", "false"},
         };
         try (PreparedStatement ps = conn.prepareStatement(
                 "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)")) {

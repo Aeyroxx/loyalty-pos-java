@@ -144,29 +144,9 @@ public class ProductsView {
         VBox unitBox = new VBox(6, unitLbl, unitCb);
         content.getChildren().add(unitBox);
 
-        // Supplier dropdown — optional, FK to suppliers.id
-        Label supLbl = new Label("SUPPLIER (OPTIONAL)"); supLbl.getStyleClass().add("field-label");
-        ComboBox<com.innov8.loyaltypos.model.Supplier> supplierCb = new ComboBox<>();
-        supplierCb.setMaxWidth(Double.MAX_VALUE);
-        supplierCb.setConverter(new javafx.util.StringConverter<>() {
-            @Override public String toString(com.innov8.loyaltypos.model.Supplier s) {
-                return s == null ? "— None —" : s.name;
-            }
-            @Override public com.innov8.loyaltypos.model.Supplier fromString(String s) { return null; }
-        });
-        java.util.List<com.innov8.loyaltypos.model.Supplier> sups =
-                com.innov8.loyaltypos.service.SupplierService.list();
-        javafx.collections.ObservableList<com.innov8.loyaltypos.model.Supplier> sopts =
-                FXCollections.observableArrayList();
-        sopts.add(null);
-        sopts.addAll(sups);
-        supplierCb.setItems(sopts);
-        if (form.supplierId != null) {
-            for (com.innov8.loyaltypos.model.Supplier s : sups)
-                if (s.id == form.supplierId) { supplierCb.setValue(s); break; }
-        }
-        VBox supBox = new VBox(6, supLbl, supplierCb);
-        content.getChildren().add(supBox);
+        // Supplier dropdown removed per revision — Suppliers page is the dedicated
+        // surface. products.supplier_id stays in the schema for future use but isn't
+        // editable from this form.
 
         HBox btns = new HBox(10);
         btns.setAlignment(Pos.CENTER_RIGHT);
@@ -265,7 +245,7 @@ public class ProductsView {
             form.name = titleCase(nVal);
             form.description = dVal;
             form.unit = unitCb.getValue();
-            form.supplierId = supplierCb.getValue() == null ? null : supplierCb.getValue().id;
+            // supplier_id no longer editable from this form; existing value is preserved.
 
             try {
                 boolean isNew = editing == null;

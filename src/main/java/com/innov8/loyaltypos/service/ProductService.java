@@ -72,8 +72,11 @@ public final class ProductService {
     }
 
     public static void delete(int id) {
+        // Soft delete + free up the item_code so it can be reused. The partial
+        // unique index keys on item_code IS NOT NULL, so nulling it on delete
+        // means a new product can take the same code without UNIQUE collision.
         try (PreparedStatement ps = Database.get().prepareStatement(
-                "UPDATE products SET is_active=0 WHERE id=?")) {
+                "UPDATE products SET is_active=0, item_code=NULL WHERE id=?")) {
             ps.setInt(1, id);
             ps.executeUpdate();
         } catch (Exception e) { throw new RuntimeException(e); }

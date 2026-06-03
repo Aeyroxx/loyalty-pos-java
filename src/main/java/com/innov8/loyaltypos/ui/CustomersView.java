@@ -107,7 +107,7 @@ public class CustomersView {
 
         ProductsView.Field nameF = ProductsView.field(content, "Name", form.name);
         ProductsView.Field tinF = ProductsView.field(content, "TIN (12 digits, optional)", form.tin);
-        ProductsView.Field phoneF = ProductsView.field(content, "Phone (11 digits, e.g. 09171234567)", form.phone);
+        ProductsView.Field phoneF = ProductsView.field(content, "Phone (REQUIRED — 11 digits, e.g. 09171234567)", form.phone);
         ProductsView.Field creditF = ProductsView.field(content, "Credit Limit (₱)", form.creditLimit > 0 ? String.valueOf(form.creditLimit) : "");
 
         // Optional credit-limit expiration date — drives PO expiry sync when present
@@ -158,7 +158,10 @@ public class CustomersView {
 
             if (nameVal.isEmpty()) { nameF.setError("Customer name is required."); ok = false; }
 
-            if (!phoneVal.isEmpty() && phoneDigits.length() != 11) {
+            if (phoneVal.isEmpty()) {
+                phoneF.setError("Phone number is required.");
+                ok = false;
+            } else if (phoneDigits.length() != 11) {
                 phoneF.setError("Phone must be 11 digits (e.g. 09171234567). You entered " + phoneDigits.length() + ".");
                 ok = false;
             }

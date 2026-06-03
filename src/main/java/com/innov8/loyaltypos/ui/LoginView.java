@@ -641,6 +641,14 @@ public class LoginView {
         try {
             User u = UserService.login(pin);
             if (u != null) {
+                // Optional second factor: email OTP for admins when otp_login_enabled
+                Object enabled = App.ctx.settings.get("otp_login_enabled");
+                boolean otpOn = enabled instanceof Boolean ? (Boolean) enabled
+                        : "true".equalsIgnoreCase(String.valueOf(enabled));
+                if (otpOn && u.isAdmin() && u.email != null && !u.email.isEmpty()) {
+                    promptOtp(u);
+                    return;
+                }
                 App.ctx.currentUser = u;
                 Platform.runLater(App::showShell);
             } else {
@@ -652,6 +660,76 @@ public class LoginView {
         } catch (Exception e) {
             pad.showError("Login failed: " + e.getMessage());
         }
+    }
+
+    /** Show an OTP entry dialog; verifies via EmailOtpService and proceeds to shell on success. */
+    private void promptOtp(User u) {
+        com.innov8.loyaltypos.service.EmailOtpService.IssueResult issued =
+                com.innov8.loyaltypos.service.EmailOtpService.issue(u.id);
+
+        VBox content = new VBox(14);
+        Label header = new Label("Two-step verification");
+        header.setStyle("-fx-text-fill: -ink; -fx-font-family: 'Barlow Condensed','Arial Narrow',sans-serif; -fx-font-size: 18; -fx-font-weight: 800;");
+        Label sub = new Label(issued.delivered
+                ? "A 6-digit code was sent to " + maskedEmail(issued.email) + ". It expires in 5 minutes."
+                : "Code below — " + (issued.deliveryError == null ? "delivery skipped" : issued.deliveryError));
+        sub.setWrapText(true);
+        sub.setStyle("-fx-text-fill: -muted; -fx-font-size: 12;");
+        content.getChildren().addAll(header, sub);
+
+        if (!issued.delivered) {
+            // Show the code locally when SMTP can't deliver
+            Label codeLbl = new Label(issued.code);
+            codeLbl.setStyle("-fx-text-fill: -accent; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 32; -fx-font-weight: 700; -fx-padding: 6 12; -fx-background-color: -overlay-mid; -fx-background-radius: 6; -fx-letter-spacing: 0.4em;");
+            content.getChildren().add(codeLbl);
+        }
+
+        javafx.scene.control.TextField codeTf = new javafx.scene.control.TextField();
+        codeTf.setPromptText("000000");
+        codeTf.setMaxWidth(220);
+        codeTf.setStyle("-fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 22; -fx-padding: 8 12; -fx-alignment: CENTER;");
+        content.getChildren().add(codeTf);
+
+        Label err = new Label();
+        err.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 12;");
+        err.setVisible(false); err.setManaged(false);
+        content.getChildren().add(err);
+
+        javafx.scene.layout.HBox btns = new javafx.scene.layout.HBox(10);
+        btns.setAlignment(Pos.CENTER_RIGHT);
+        javafx.scene.layout.Region sp = new javafx.scene.layout.Region();
+        HBox.setHgrow(sp, Priority.ALWAYS);
+        javafx.scene.control.Button cancel = new javafx.scene.control.Button("Cancel");
+        cancel.getStyleClass().addAll("btn", "btn-ghost");
+        javafx.scene.control.Button verify = new javafx.scene.control.Button("Verify");
+        verify.getStyleClass().addAll("btn", "btn-primary");
+        verify.setDefaultButton(true);
+        btns.getChildren().addAll(sp, cancel, verify);
+        content.getChildren().add(btns);
+
+        Modal modal = new Modal(root.getScene().getWindow(), "Verify your email", content);
+        cancel.setOnAction(e -> modal.close());
+        verify.setOnAction(e -> {
+            String code = codeTf.getText() == null ? "" : codeTf.getText().trim();
+            if (!com.innov8.loyaltypos.service.EmailOtpService.verify(u.id, code)) {
+                err.setText("Incorrect or expired code. Try again or cancel.");
+                err.setVisible(true); err.setManaged(true);
+                return;
+            }
+            modal.close();
+            App.ctx.currentUser = u;
+            Platform.runLater(App::showShell);
+        });
+        modal.show();
+    }
+
+    private static String maskedEmail(String email) {
+        if (email == null || !email.contains("@")) return email == null ? "" : email;
+        int at = email.indexOf('@');
+        String local = email.substring(0, at);
+        String domain = email.substring(at);
+        if (local.length() <= 2) return local.charAt(0) + "***" + domain;
+        return local.charAt(0) + "***" + local.charAt(local.length() - 1) + domain;
     }
 
     // ──────────────────────────────────────────────────────────────────────

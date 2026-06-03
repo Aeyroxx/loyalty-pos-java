@@ -79,6 +79,14 @@ public class SettingsView {
                     {"gemini_api_key", "Gemini API Key (https://aistudio.google.com/app/apikey)", "text"},
                     {"gemini_model", "Model (default: gemini-3.1-flash-lite)", "text"}
             }),
+            new Section("Email / OTP Login (SMTP)", new String[][]{
+                    {"otp_login_enabled", "Require email OTP on admin login", "boolean"},
+                    {"smtp_host", "SMTP Host (e.g. smtp.gmail.com)", "text"},
+                    {"smtp_port", "SMTP Port (default 465 for SMTPS)", "number"},
+                    {"smtp_user", "SMTP Username (usually the from address)", "text"},
+                    {"smtp_pass", "SMTP Password / App Password", "text"},
+                    {"smtp_from", "From address (defaults to username)", "text"}
+            }),
             new Section("PO Defaults", new String[][]{
                     {"po_default_credit_limit", "Default Credit Limit", "number"},
                     {"po_default_expiry_days", "Default Expiry (days)", "number"}
@@ -332,6 +340,8 @@ public class SettingsView {
         Label err = new Label(); err.getStyleClass().add("error-banner"); err.setVisible(false); err.setManaged(false);
         content.getChildren().add(err);
         TextField nameTf = ProductsView.labeledField(content, "Name", editing == null ? "" : editing.name);
+        TextField emailTf = ProductsView.labeledField(content, "Email (for OTP login, optional)",
+                editing == null ? "" : (editing.email == null ? "" : editing.email));
         Label pl = new Label(editing == null ? "PIN (4–8 DIGITS)" : "NEW PIN (LEAVE BLANK TO KEEP)"); pl.getStyleClass().add("field-label");
         PasswordField pinTf = new PasswordField(); pinTf.getStyleClass().add("text-field");
         Label cpl = new Label("CONFIRM PIN"); cpl.getStyleClass().add("field-label");
@@ -362,8 +372,12 @@ public class SettingsView {
                 if (editing == null && pin.isEmpty()) { err.setText("PIN is required."); err.setVisible(true); err.setManaged(true); return; }
                 if (!pin.isEmpty() && !pin.equals(confirmPin)) { err.setText("PINs do not match."); err.setVisible(true); err.setManaged(true); return; }
                 if (!pin.isEmpty() && !pin.matches("\\d{4,8}")) { err.setText("PIN must be 4–8 digits."); err.setVisible(true); err.setManaged(true); return; }
-                if (editing != null) UserService.update(editing.id, name, roleCb.getValue(), pin.isEmpty() ? null : pin);
-                else UserService.create(name, roleCb.getValue(), pin);
+                String emailVal = emailTf.getText() == null ? "" : emailTf.getText().trim();
+                if (!emailVal.isEmpty() && !emailVal.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+                    err.setText("Email format looks off."); err.setVisible(true); err.setManaged(true); return;
+                }
+                if (editing != null) UserService.update(editing.id, name, roleCb.getValue(), pin.isEmpty() ? null : pin, emailVal);
+                else UserService.create(name, roleCb.getValue(), pin, emailVal.isEmpty() ? null : emailVal);
                 modal.close();
                 loadUsers();
             } catch (Exception ex) { showError(ex); }

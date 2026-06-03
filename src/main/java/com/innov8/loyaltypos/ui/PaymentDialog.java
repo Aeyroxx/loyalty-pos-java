@@ -44,6 +44,10 @@ public class PaymentDialog {
     private final Map<String, Boolean> selected = new LinkedHashMap<>();
     private final Map<String, TextField> amounts = new LinkedHashMap<>();
     private final Map<String, TextField[]> meta = new LinkedHashMap<>();
+    // Persistent typed values — survive method toggling so users don't lose what
+    // they already typed when they tap a different payment method tab.
+    private final Map<String, String> persistedAmounts = new LinkedHashMap<>();
+    private final Map<String, String[]> persistedMeta = new LinkedHashMap<>();
     private ComboBox<PoAccount> poSelect;
     private List<PoAccount> poAccounts = new ArrayList<>();
     private final VBox detailBox = new VBox(12);
@@ -167,6 +171,14 @@ public class PaymentDialog {
     }
 
     private void refreshDetail() {
+        // Persist currently-visible field values BEFORE clearing so toggling
+        // methods doesn't lose what the user already typed.
+        for (var entry : amounts.entrySet()) persistedAmounts.put(entry.getKey(), entry.getValue().getText());
+        for (var entry : meta.entrySet()) {
+            TextField[] tfs = entry.getValue();
+            persistedMeta.put(entry.getKey(), new String[]{tfs[0].getText(), tfs[1].getText()});
+        }
+
         detailBox.getChildren().clear();
         amounts.clear();
         meta.clear();
@@ -187,14 +199,23 @@ public class PaymentDialog {
             TextField tf = new TextField();
             tf.setPromptText("0.00");
             tf.setStyle("-fx-background-color: transparent; -fx-border-color: transparent transparent -border-strong transparent; -fx-text-fill: -ink; -fx-font-family: 'IBM Plex Mono',monospace; -fx-font-size: 22; -fx-font-weight: 600; -fx-alignment: CENTER-RIGHT; -fx-padding: 6 0;");
-            // Pre-fill with remaining
-            double currentPaid = 0;
-            for (String mm : METHODS) {
-                if (!mm.equals(m) && amounts.containsKey(mm)) currentPaid += ProductsView.parseD(amounts.get(mm).getText());
+            // Prefer a previously-typed value over an auto-fill so toggling
+            // methods preserves user input.
+            String prior = persistedAmounts.get(m);
+            if (prior != null && !prior.isEmpty()) {
+                tf.setText(prior);
+            } else {
+                double currentPaid = 0;
+                for (String mm : METHODS) {
+                    if (!mm.equals(m) && amounts.containsKey(mm)) currentPaid += ProductsView.parseD(amounts.get(mm).getText());
+                }
+                double fill = Math.max(0, total - currentPaid);
+                if (fill > 0) tf.setText(Money.fmt(fill));
             }
-            double fill = Math.max(0, total - currentPaid);
-            if (fill > 0) tf.setText(Money.fmt(fill));
-            tf.textProperty().addListener((o, a, b) -> recalc());
+            tf.textProperty().addListener((o, a, b) -> {
+                persistedAmounts.put(m, b);
+                recalc();
+            });
             card.getChildren().add(tf);
             amounts.put(m, tf);
 
@@ -202,6 +223,11 @@ public class PaymentDialog {
                 HBox row = new HBox(12);
                 TextField ref = new TextField(); ref.getStyleClass().add("text-field");
                 TextField sender = new TextField(); sender.getStyleClass().add("text-field");
+                String[] priorMeta = persistedMeta.get(m);
+                if (priorMeta != null) {
+                    if (priorMeta[0] != null) ref.setText(priorMeta[0]);
+                    if (priorMeta[1] != null) sender.setText(priorMeta[1]);
+                }
                 Label refL = new Label("REFERENCE NO."); refL.getStyleClass().add("field-label");
                 Label sendL = new Label("SENDER NAME"); sendL.getStyleClass().add("field-label");
                 VBox refBox = new VBox(4, refL, ref); HBox.setHgrow(refBox, Priority.ALWAYS);
